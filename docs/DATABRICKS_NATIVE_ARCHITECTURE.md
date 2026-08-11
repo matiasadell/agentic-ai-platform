@@ -214,19 +214,22 @@ Deploy de aplicaciones Streamlit en Databricks.
 
 ## ✅ Checklist de Migración
 
-- [x] Corregir config.py para usar AI Gateway
-- [ ] Eliminar carpeta `src/mcp_servers/` (no se necesita)
-- [ ] Eliminar `config/llm_routing.yaml` (reemplazado por AI Gateway)
-- [ ] Eliminar `config/mcp_tools.yaml` (tools van a Unity Catalog)
-- [ ] Eliminar scripts de LiteLLM y MCP
-- [ ] Actualizar `pyproject.toml`
-- [ ] Actualizar `.env.example`
-- [ ] Actualizar documentación
-- [ ] Implementar tools con `@Tool` decorator
-- [ ] Implementar primer worker
-- [ ] Deploy en Model Serving
+Estado real verificado el 2026-08-11 (la versión anterior de este checklist no reflejaba el código actual):
+
+- [x] Corregir config.py para usar AI Gateway — `src/utils/config.py` usa exclusivamente `ai_gateway_*` endpoints
+- [x] Eliminar carpeta `src/mcp_servers/` — no existe en el repo
+- [x] Eliminar scripts de LiteLLM y MCP — no existen
+- [x] Implementar tools con `@tool` decorator — `src/agents/tools/uc_functions.py`, `src/agents/fundamental_agents.py`
+- [x] Implementar primer worker — `MacroDataWorker` y varios más, ver [WORKER_VERSIONS_GUIDE.md](./WORKER_VERSIONS_GUIDE.md)
+- [ ] **`config/mcp_tools.yaml` sigue sin eliminarse** — todavía referencia `src/mcp_servers/financial_data_server.py`, que no existe. Pendiente real.
+- [ ] `config/llm_routing.yaml` — no existe en el repo (probablemente nunca se llegó a crear)
+- [ ] Actualizar `pyproject.toml` / `.env.example` para reflejar 100% Databricks-native — no verificado
+- [ ] Deploy en Model Serving — no implementado
+
+Ver [PROJECT_STATUS.md](./PROJECT_STATUS.md) para el estado completo y actualizado de todo el proyecto, no solo esta migración.
 
 ---
 
-**Fecha de actualización**: 2024
+**Fecha de actualización original**: 2026 (sin día preciso en el documento original)
+**Checklist verificado**: 2026-08-11
 **Versión**: 2.0 (Arquitectura Nativa Databricks)

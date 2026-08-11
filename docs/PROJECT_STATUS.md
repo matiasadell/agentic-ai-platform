@@ -1,377 +1,129 @@
-# 📊 Estado del Proyecto Agentic AI Platform
+# 📊 Estado del Proyecto — FinSight AI / Agentic AI Platform
 
-**Fecha:** 24 de Julio, 2026  
-**Última Actualización:** Post-Cleanup  
-**Versión:** 0.2.0-alpha  
-**Estado:** ✅ Clean, Organized, Production-Ready
+**Última actualización:** 2026-08-11 (auditoría contra el código real del repo)
+**Estado:** 🟡 En desarrollo activo — múltiples patrones de agente coexisten, algunos módulos están rotos o duplicados
 
----
-
-## 🎯 Project Overview
-
-Plataforma de agentes AI para análisis financiero multi-fuente, construida nativamente en Databricks con:
-- **Databricks AI Gateway** para enrutamiento LLM
-- **Unity Catalog** para gobernanza y datos
-- **MLflow** para tracking y observabilidad
-- **MCP (Model Context Protocol)** para integración de herramientas externas
+> Este documento reemplaza la versión anterior (fechada 2026-07-24), que describía una estructura de carpetas (`src/agents/workers/macro/`, `src/agents/workers/news/`, `src/mcp_servers/`) y una infraestructura (FastAPI, Docker, Neo4j, Redis, tests/) que **no existen en el código actual**. Todo lo de abajo está verificado contra el árbol de archivos real.
 
 ---
 
-## ✅ Implemented & Tested
+## 🎯 Qué es esto
 
-### 1. Core Infrastructure
-- ✅ **BaseAgent** (11K) - Base class para todos los agentes
-  - Databricks AI Gateway integration
-  - MCP tool orchestration
-  - LangGraph workflow execution
-  - MLflow logging
-  - Error handling y retry logic
-  
-- ✅ **Utils Package** (12K total)
-  - `config.py` (8.5K) - Pydantic Settings con validación
-  - `logging.py` (1.5K) - Loguru setup
-  - `cache.py` (2.5K) - Redis cache manager
+Plataforma de agentes IA para análisis financiero, pensada para correr **nativamente en Databricks**:
+- **Databricks AI Gateway** para el routing de LLM (`src/agents/base_agent.py`)
+- **Unity Catalog Functions** como tools nativos (`src/agents/tools/uc_functions.py`, `notebooks/setup_uc_functions.sql`)
+- **MLflow** (nativo de Databricks) para tracing
+- **LangGraph** para orquestación de agentes/supervisors
 
-### 2. Workers (8/11 Implemented)
-
-#### ✅ MacroDataWorker
-- **Location**: `src/agents/workers/macro/macro_data_worker.py` (4K)
-- **Capabilities**:
-  - GDP data (World Bank API)
-  - Inflation rates (FRED API)
-  - Unemployment data (FRED API)
-  - Interest rates (FRED API)
-- **Status**: ✅ Fully tested and operational
-
-#### ✅ RegionalContextWorker
-- **Location**: `src/agents/workers/macro/regional_context_worker.py`
-- **Capabilities**:
-  - Regional economic context
-  - GDP comparisons across regions
-  - Regional news integration
-- **Status**: ✅ Fully tested and operational
-
-#### ✅ IndicatorAnalysisWorker
-- **Location**: `src/agents/workers/macro/indicator_analysis_worker.py`
-- **Capabilities**:
-  - Technical indicators (RSI, MACD)
-  - Stock price analysis
-  - Trend detection
-- **Status**: ✅ Fully tested and operational
-
-#### ✅ MarketSentimentWorker
-- **Location**: `src/agents/workers/news/market_sentiment.py` (4K)
-- **Capabilities**:
-  - Financial news search (NewsAPI)
-  - Sentiment analysis
-  - News aggregation
-- **Status**: ✅ Fully tested and operational
-
-#### ✅ EventDetectionWorker
-- **Location**: `src/agents/workers/event_detection_worker.py`
-- **Capabilities**:
-  - Corporate events detection
-  - Earnings calendar
-  - Market-moving news
-- **Status**: ✅ Fully tested and operational
-
-#### ✅ GeneralNewsWorker (NEW)
-- **Location**: `src/agents/workers/news/general_news_worker.py`
-- **Capabilities**:
-  - Batch news ingestion
-  - News filtering by relevance
-  - Automatic categorization
-  - News timeline creation
-  - Key themes identification
-- **Status**: ✅ Implemented, ready for testing
-
-#### ✅ SectorNewsWorker (NEW)
-- **Location**: `src/agents/workers/news/sector_news_worker.py`
-- **Capabilities**:
-  - Sector-specific news (tech, energy, finance, etc.)
-  - Sector sentiment analysis
-  - Competitive tracking within sectors
-  - Sector trends detection
-  - Regulatory analysis
-- **Status**: ✅ Implemented, ready for testing
-
-### 3. MCP Servers (2 Implemented)
-
-#### ✅ FinancialDataServer
-- **Location**: `src/mcp_servers/financial_data_server.py` (11K)
-- **Tools**:
-  - `get_gdp_data` - World Bank GDP
-  - `get_inflation_data` - FRED CPI
-  - `get_unemployment_data` - FRED unemployment
-  - `get_interest_rate` - FRED interest rates
-- **APIs**: World Bank API, FRED API
-- **Status**: ✅ Operational
-
-#### ✅ NewsSearchServer
-- **Location**: `src/mcp_servers/news_search_server.py` (9.5K)
-- **Tools**:
-  - `get_financial_news` - NewsAPI search
-  - `analyze_news_sentiment` - Sentiment analysis
-- **APIs**: NewsAPI
-- **Status**: ✅ Operational
-
-### 4. Security
-- ✅ **Databricks Secrets** (scope: `finsight`)
-  - `fred-api-key` ✓
-  - `news-api-key` ✓
-  - `alpha-vantage-api-key` ✓
-- ✅ **Zero hardcoded credentials**
-- ✅ **Complete security documentation** (SECURITY_SETUP.md)
-- ✅ **Validation scripts** (all checks passing)
-
-### 5. Documentation
-- ✅ **README.md** (13K) - Project overview
-- ✅ **ARCHITECTURE.md** (9K) - System design
-- ✅ **DATABRICKS_NATIVE_ARCHITECTURE.md** (11K) - Databricks integration
-- ✅ **SECURITY_SETUP.md** (7K) - Security best practices
-- ✅ **QUICKSTART.md** (6K) - Getting started guide
-- ✅ **CLEANUP_REPORT.md** (New) - Cleanup summary
-
-### 6. Configuration
-- ✅ **agent_configs.yaml** (4.5K) - Agent configurations
-- ✅ **mcp_tools.yaml** (7.5K) - MCP tool definitions
-- ✅ **pyproject.toml** (3.5K) - Python project config
-- ✅ **.env.example** (3K) - Environment template
-
-### 7. Testing
-- ✅ **Test Notebook** - `/Users/matiasadell@hotmail.com/Test Agentic AI Platform Workers`
-  - MacroDataWorker tests passing ✓
-  - MarketSentimentWorker tests passing ✓
-  - MCP tool integration verified ✓
-  - Databricks Secrets integration verified ✓
+No hay API REST, no hay contenedores, no hay tests automatizados en el repo hoy. Los `docker-compose`, `FastAPI`, `Neo4j`, `Redis`, `pytest tests/` que aparecían en versiones anteriores del README/QUICKSTART eran aspiracionales o de un diseño descartado — ver [DATABRICKS_NATIVE_ARCHITECTURE.md](./DATABRICKS_NATIVE_ARCHITECTURE.md), que documenta explícitamente por qué se abandonó ese enfoque híbrido.
 
 ---
 
-## 🗑️ Recently Removed (Cleanup 2026-07-24)
+## ✅ Lo que existe y compila (import-safe)
 
-### Directories Removed (10)
-- ❌ src/api/ - Not implemented
-- ❌ src/evaluation/ - Empty
-- ❌ src/graph/ - Not implemented
-- ❌ src/guardrails/ - Empty
-- ❌ src/tools/ - Empty
-- ❌ src/rag/ - Not implemented
-- ❌ tests/ - No tests yet
-- ❌ data/ - No local data
-- ❌ scripts/ - Not needed in Databricks
-- ❌ notebooks/ - Use workspace notebooks
+### Core
+- **`src/agents/base_agent.py`** — Clase base abstracta: llama a Databricks AI Gateway vía `WorkspaceClient.serving_endpoints.query()`, loop de tool-calling, logging a MLflow. Requiere workspace de Databricks para correr (usa `databricks.sdk`, y tiene un `sys.path.insert` hardcodeado a `/Workspace/Users/matiasadell@hotmail.com` — solo funciona en ese workspace específico).
+- **`src/utils/config.py`** — `Settings` (Pydantic) con las variables de entorno reales del proyecto; corresponde 1:1 con `.env.example`.
+- **`src/utils/logging.py`**, **`src/utils/cache.py`** — utilidades de soporte.
 
-### Documentation Removed (8 files)
-- ❌ README.md.backup
-- ❌ docs/architecture.md (redundant)
-- ❌ docs/information.md
-- ❌ docs/MCP_LITELLM.md (not used)
-- ❌ docs/AI_GATEWAY_GUIDE.md (already configured)
-- ❌ docs/arquitectura/02-05 (supervisors not implemented)
+### Dominio Macro — patrón "Workers" (data fetchers, sin razonamiento LLM propio salvo el que orquesta el supervisor)
+- `src/agents/workers/macro_data_worker.py`
+- `src/agents/workers/regional_context_worker.py`
+- `src/agents/workers/indicator_analysis_worker.py`
+- Supervisor: `src/agents/supervisors/macro_supervisor.py` ✅ (coordina los 3 workers, es el que se usa)
 
-### Code Removed (8 files)
-- ❌ MCP server placeholders (4 files)
-- ❌ Scripts (8 files)
-- ❌ Unused notebooks (2 files)
-- ❌ Unused configs (3 files)
+### Dominio News — patrón "Workers"
+- `src/agents/workers/general_news_worker.py`
+- `src/agents/workers/sector_news_worker.py`
+- `src/agents/workers/market_sentiment_worker.py`
+- `src/agents/workers/event_detection_worker.py`
+- Supervisor: `src/agents/supervisors/news_supervisor.py` ✅ (coordina los 4 workers, es el que se usa)
 
-### Impact
-- **Size reduction**: 516K → 248K (52% reduction)
-- **Files removed**: ~40+ files
-- **Clarity**: Production-ready, maintainable codebase
+### Dominio Fundamental — patrón distinto: "Agents" (ReAct, con LLM propio)
+- `src/agents/fundamental_agents.py` — 4 `create_react_agent`: financial_statement, key_ratios, earnings, valuation
+- Supervisor: `src/agents/supervisors/fundamental_supervisor_v2.py` ✅ (StateGraph secuencial de los 4 agents, es el que se usa)
+- **`src/workers/fundamental.py`** — versión "worker" anterior de este mismo dominio (4 clases: `FinancialStatementWorker`, `KeyRatiosWorker`, `EarningsWorker`, `ValuationWorker`). Vive en `src/workers/`, un paquete paralelo a `src/agents/workers/` que no se usa desde ningún supervisor funcional — ver sección de problemas abajo.
 
----
+### Schemas y validación
+- `src/schemas/{base,fundamental,macro,news,validator}.py` — modelos Pydantic de respuesta por dominio.
 
-## 🔄 Not Yet Implemented
-
-### Workers (3 remaining)
-
-#### Macro Workers (3/3) ✅
-- ✅ MacroDataWorker
-- ✅ RegionalContextWorker
-- ✅ IndicatorAnalysisWorker
-
-#### News Workers (4/4) ✅
-- ✅ MarketSentimentWorker
-- ✅ EventDetectionWorker
-- ✅ GeneralNewsWorker (NEW)
-- ✅ SectorNewsWorker (NEW)
-
-#### Fundamental Workers (0/3)
-- ⬜ EarningsAnalysisWorker
-- ⬜ FinancialRatiosWorker
-- ⬜ ValuationWorker
-
-### Supervisors (2/3)
-- ✅ MacroSupervisor
-- ✅ NewsSupervisor (NEW - COMPLETED)
-- ⬜ FundamentalSupervisor
-
-### Orchestrator (0/1)
-- ⬜ StrategicOrchestrator
-
-### Advanced Features
-- ⬜ RAG capabilities
-- ⬜ Knowledge graph (Neo4j)
-- ⬜ Vector search
-- ⬜ API endpoints
-- ⬜ Evaluation pipeline
-- ⬜ Guardrails
+### Config y notebooks
+- `config/agent_configs.yaml` — configuración de orchestrator/supervisors (modelo, temperatura, timeouts).
+- `notebooks/setup_uc_functions.sql` — `CREATE FUNCTION` de las 5 Unity Catalog functions (`get_gdp_data`, `get_inflation_data`, `get_unemployment_data`, `get_interest_rate`, `get_financial_news`).
+- `notebooks/example_agent_usage.py` — ejemplo de uso.
+- `8-multiagent.py` — notebook standalone (patrón LangGraph de referencia con 3 agentes RAG); es la fuente del patrón que después se aplicó a `fundamental_agents.py`.
 
 ---
 
-## 📊 Current Statistics
+## 🔴 Roto o inconsistente (verificado por import estático)
 
-### Codebase Size
-- **Total**: 248K
-- **Source Code**: 86K (17 Python files)
-- **Documentation**: 34K (6 MD files)
-- **Configuration**: 16K (3 config files)
+### 1. Tres supervisors `_langgraph.py` no importan
+| Archivo | Import que falla |
+|---|---|
+| `src/agents/supervisors/macro_supervisor_langgraph.py` | `from src.workers.macro import (...)` — **`src/workers/macro.py` no existe** |
+| `src/agents/supervisors/news_supervisor_langgraph.py` | `from src.workers.news import (...)` — **`src/workers/news.py` no existe** |
+| `src/agents/supervisors/fundamental_supervisor_langgraph.py` | `from src.workers.fundamental import (...)` — este sí existe, pero nada más en el repo importa este supervisor tampoco |
 
-### Agent Coverage
-- **Workers**: 8/11 (73%)
-- **Supervisors**: 2/3 (67%)
-- **Orchestrator**: 0/1 (0%)
-- **Overall Progress**: ~65%
+Ninguno de los tres está referenciado desde otro módulo del repo. Son variantes abandonadas a medio migrar — probablemente el intento de portar `macro_supervisor.py` y `news_supervisor.py` al mismo patrón declarativo de `fundamental_supervisor_v2.py`, que se frenó antes de crear `src/workers/macro.py` / `src/workers/news.py`.
 
-### Testing Coverage
-- **Unit tests**: 0
-- **Integration tests**: 2 workers tested manually
-- **E2E tests**: 0
-- **Coverage**: Manual testing only
+**Nota:** el `README.md` anterior afirmaba *"LangGraph Migration Complete... Total: 12 workers, 3 supervisors, ALL LangGraph!"* — eso es incorrecto; 2 de los 3 supervisors "LangGraph" no funcionan.
 
----
+### 2. Dos jerarquías de "workers" paralelas
+- `src/agents/workers/` (7 archivos, usados por `macro_supervisor.py` y `news_supervisor.py`)
+- `src/workers/` (1 archivo, `fundamental.py`, usado solo por el supervisor `_langgraph` roto de fundamental)
 
-## 🚀 Next Steps
+Nombres coinciden en concepto pero no en ubicación ni convención; confunde a cualquiera que busque "el" paquete de workers.
 
-### Immediate (This Week)
-1. ⬜ Implement RegionalContextWorker (Worker #3)
-2. ⬜ Implement IndicatorAnalysisWorker (Worker #4)
-3. ⬜ Test macro workers together
-4. ⬜ Create MacroSupervisor
+### 3. Tres generaciones de supervisor para el dominio Fundamental
+`fundamental_supervisor_langgraph.py` (roto), `fundamental_supervisor_v2.py` (el que funciona), y el patrón "workers" en `src/workers/fundamental.py` sin supervisor propio. No hay un `__init__.py` que declare cuál es el público — `src/agents/supervisors/__init__.py` está vacío.
 
-### Short Term (2-4 Weeks)
-5. ⬜ Implement remaining news workers (3 more)
-6. ⬜ Implement fundamental workers (4 workers)
-7. ⬜ Create NewsSupervisor
-8. ⬜ Create FundamentalSupervisor
+### 4. `config/mcp_tools.yaml` referencia infraestructura eliminada
+Apunta a `src/mcp_servers/financial_data_server.py`, que no existe — consistente con lo que dice `docs/DATABRICKS_NATIVE_ARCHITECTURE.md` (los MCP servers custom fueron descartados a favor de Unity Catalog Functions), pero el archivo de config nunca se borró ni actualizó.
 
-### Medium Term (1-2 Months)
-9. ⬜ Implement StrategicOrchestrator
-10. ⬜ Add RAG capabilities
-11. ⬜ Implement knowledge graph
-12. ⬜ Add evaluation pipeline
+### 5. Secretos hardcodeados en el repo (seguridad, no solo documentación)
+- `8-multiagent.py` tiene una API key de Tavily en texto plano.
+- `.env.example` tiene una API key de Financial Modeling Prep real (no un placeholder) en `FMP_API_KEY=`.
+
+Esto contradice directamente [SECURITY_SETUP.md](./SECURITY_SETUP.md) ("Never hardcode API keys"). Ambas keys deberían rotarse y removerse del código, independientemente de cualquier otro cleanup.
 
 ---
 
-## 🎯 MVP Goals
+## 📊 Cobertura real
 
-### MVP Definition
-Minimum viable product to demonstrate end-to-end flow:
+| Dominio | Workers/Agents | Supervisor funcional |
+|---|---|---|
+| Macro | 3/3 (`macro_data`, `regional_context`, `indicator_analysis`) | ✅ `macro_supervisor.py` |
+| News | 4/4 (`general_news`, `sector_news`, `market_sentiment`, `event_detection`) | ✅ `news_supervisor.py` |
+| Fundamental | 4/4 agents (`fundamental_agents.py`) + 4 workers redundantes (`src/workers/fundamental.py`) | ✅ `fundamental_supervisor_v2.py` |
+| Orchestrator (Nivel 1, `docs/ARCHITECTURE.md`) | — | ⬜ No implementado |
 
-#### Must Have
-- [x] Base infrastructure (BaseAgent)
-- [x] 2+ workers implemented
-- [x] MCP tool integration
-- [x] Databricks AI Gateway
-- [x] Security (Secrets)
-- [ ] 1 Supervisor implemented
-- [ ] Basic orchestration
-- [ ] End-to-end query flow
-
-#### Timeline
-- **Started**: 2026-07-22
-- **Cleanup**: 2026-07-24
-- **Target MVP**: 2026-08-15 (3 weeks)
-- **Progress**: ~40% complete
+**No implementado:** Strategic Orchestrator (Nivel 1), RAG, knowledge graph (Neo4j), vector search, API endpoints, evaluation pipeline (RAGAS), guardrails, tests automatizados. Estos aparecen mencionados en README/ARCHITECTURE como visión de producto, no como código presente.
 
 ---
 
-## 📈 Velocity Metrics
+## 🗂️ Historial (changelog, consolidado desde IMPLEMENTATION_SUMMARY.md — 2026-07-30)
 
-### Last 2 Days (July 22-24)
-- ✅ BaseAgent implemented (11K)
-- ✅ 2 workers implemented (8K)
-- ✅ 2 MCP servers implemented (20K)
-- ✅ Security migration to Secrets
-- ✅ Complete project cleanup
-- ✅ Documentation updates
+Implementación del patrón "Agents" para el dominio Fundamental, siguiendo el patrón de `8-multiagent.py`:
+- ✅ `fundamental_agents.py` — 4 tools de LangChain + 4 ReAct agents
+- ✅ `fundamental_supervisor_v2.py` — StateGraph secuencial: `financial_agent → ratios_agent → earnings_agent → valuation_agent`
+- ✅ Documentación del cambio de paradigma Workers → Agents (ahora en el anexo de [ARCHITECTURE.md](./ARCHITECTURE.md))
+- ⚠️ Pendiente en su momento: incompatibilidad de dependencias que requería reinicio de kernel para testing completo (no se sabe si sigue vigente — no verificable sin correr en Databricks)
 
-### Productivity
-- **Code written**: ~50K
-- **Code removed**: ~270K (cleanup)
-- **Docs created**: 6 files
-- **Velocity**: High momentum
+Cleanup anterior (2026-07-24, referenciado en la versión previa de este doc): remoción de ~40 archivos no usados (`src/api/`, `src/evaluation/`, `src/graph/`, `src/guardrails/`, `src/tools/`, `src/rag/`, `tests/`, `data/`, `scripts/`), reducción de 516K a 248K.
+
+Cleanup 2026-08-11 (esta sesión): eliminado `agentic-ai-platform.zip` + `unzip.py` (archivo comprimido del propio repo, commiteado por error) y `manifest.mf` (metadata de herramienta externa, no contenido real); documentación raíz consolidada en `docs/`.
 
 ---
 
-## 💡 Recommendations
+## 🚀 Próximos pasos sugeridos
 
-### Development Best Practices
-1. ✅ Keep codebase clean (no placeholders)
-2. ✅ Test as you go (manual testing working)
-3. ✅ Document everything (6 MD files)
-4. ✅ Use Databricks Secrets (zero hardcoded keys)
-5. ⬜ Add unit tests as you implement features
-
-### Next Worker Implementation Order
-**Rationale**: Build out macro category first (strongest foundation)
-
-1. **RegionalContextWorker** (Week 1)
-   - Extends MacroDataWorker
-   - Regional economic context
-   - GDP comparisons across regions
-
-2. **IndicatorAnalysisWorker** (Week 1)
-   - Extends MacroDataWorker
-   - Advanced indicator analysis
-   - Trend detection
-
-3. **MacroSupervisor** (Week 1-2)
-   - Coordinates 3 macro workers
-   - First supervisor implementation
-   - Pattern for other supervisors
-
-4. **NewsIngestionWorker** (Week 2)
-   - Extends MarketSentimentWorker
-   - Batch news ingestion
-   - News filtering
-
-5. **EventDetectionWorker** (Week 2)
-   - Major event detection
-   - Market-moving news identification
-
-6. **NewsSupervisor** (Week 2-3)
-   - Coordinates news workers
-   - Pattern established from MacroSupervisor
-
-### Architecture Decisions
-- ✅ Databricks-native (no external dependencies)
-- ✅ MCP for tool orchestration (proven pattern)
-- ✅ LangGraph for workflows (working well)
-- ✅ MLflow for observability (to be implemented)
-- ⬜ Consider adding basic unit tests soon
+1. **Decidir y resolver** cuál supervisor de Fundamental es el canónico (`_v2` funciona; los otros dos deberían borrarse o completarse).
+2. **Arreglar o borrar** `macro_supervisor_langgraph.py` y `news_supervisor_langgraph.py` (crear `src/workers/macro.py` y `src/workers/news.py`, o eliminar los tres archivos `_langgraph` y quedarse con el patrón "workers" que ya funciona).
+3. **Unificar** `src/workers/` dentro de `src/agents/workers/` (o viceversa) para tener una sola jerarquía.
+4. **Rotar y remover** las API keys hardcodeadas en `8-multiagent.py` y `.env.example`.
+5. **Actualizar o borrar** `config/mcp_tools.yaml` (referencia código que ya no existe).
+6. Recién después de eso: Strategic Orchestrator, RAG, evaluación, tests.
 
 ---
 
-## 📞 Support & Resources
-
-### Documentation
-- [README.md](../README.md) - Project overview
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - System design
-- [SECURITY_SETUP.md](../SECURITY_SETUP.md) - Security guide
-- [CLEANUP_REPORT.md](../CLEANUP_REPORT.md) - Recent cleanup
-
-### Testing
-- [Test Notebook](#notebook-2789883673005392) - Worker tests
-
-### Secrets
-- **Scope**: `finsight`
-- **Keys**: fred-api-key, news-api-key, alpha-vantage-api-key
-- **Status**: ✅ All configured and tested
-
----
-
-**Last Updated**: 2026-07-24  
-**Maintained By**: Matias Adell  
-**Status**: ✅ Clean, organized, ready for expansion
+**Mantenido por:** Matias Adell
