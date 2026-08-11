@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Environment
+.env
+.env.local
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+logs/
+
+# MLflow
+mlruns/
+mlflow.db
+
+# Neo4j
+neo4j_data/
+.neo4j/
+
+# Redis
+dump.rdb
+
+# Cache
+.cache/
+
+# Databricks
+.databricks/
+
+# Secrets
+secrets/
+*.pem
+*.key
+
+# Temporary
+tmp/
+temp/

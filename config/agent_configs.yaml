@@ -1,0 +1,212 @@
+# FinSight AI - Agent Configuration
+# =================================
+
+# Strategic Orchestrator (Level 1)
+orchestrator:
+  name: "FinSight Strategic Orchestrator"
+  model: "gpt-4o"
+  temperature: 0.2
+  max_tokens: 4096
+  human_approval_threshold: 100.0  # USD
+  max_replanning_iterations: 3
+  timeout: 600  # seconds
+  
+  capabilities:
+    - query_planning
+    - cost_estimation
+    - human_approval_gateway
+    - dynamic_replanning
+    - progress_monitoring
+
+# Macro & Market Supervisor (Level 2)
+macro_supervisor:
+  name: "Macro & Market Supervisor"
+  model: "gpt-4o"
+  temperature: 0.1
+  max_tokens: 2048
+  
+  workers:
+    - macro_data_worker
+    - regional_context_worker
+    - indicator_analysis_worker
+  
+  coordination_strategy: "parallel_with_timeout"
+  timeout: 300
+
+# Fundamental Analysis Supervisor (Level 2)
+fundamental_supervisor:
+  name: "Fundamental Analysis Supervisor"
+  model: "gpt-4o"
+  temperature: 0.1
+  max_tokens: 2048
+  
+  workers:
+    - sec_filings_worker
+    - ratio_calculator_worker
+    - comparative_worker
+    - graph_relationship_worker
+  
+  coordination_strategy: "sequential_with_dependencies"
+  timeout: 400
+
+# News & Sentiment Supervisor (Level 2)
+news_supervisor:
+  name: "News & Sentiment Supervisor"
+  model: "gpt-4o"
+  temperature: 0.1
+  max_tokens: 2048
+  
+  workers:
+    - news_ingestion_worker
+    - sentiment_worker
+    - event_detection_worker
+    - contradiction_detector_worker
+  
+  coordination_strategy: "parallel_then_aggregate"
+  timeout: 250
+
+# Workers Configuration (Level 3)
+workers:
+  # Macro Workers
+  macro_data_worker:
+    name: "Macro Data Worker"
+    model: "gpt-4o-mini"
+    temperature: 0
+    max_tokens: 1024
+    tools:
+      - bcra_api
+      - alpha_vantage
+      - yahoo_finance
+    cache_enabled: true
+    retry_attempts: 3
+  
+  regional_context_worker:
+    name: "Regional Context Worker"
+    model: "gpt-4o-mini"
+    temperature: 0.1
+    max_tokens: 2048
+    tools:
+      - tavily_search
+      - news_api
+    cache_enabled: true
+  
+  indicator_analysis_worker:
+    name: "Indicator Analysis Worker"
+    model: "gpt-4o-mini"
+    temperature: 0
+    max_tokens: 1024
+    tools:
+      - technical_indicators
+      - macro_calculators
+    cache_enabled: false
+  
+  # Fundamental Workers
+  sec_filings_worker:
+    name: "SEC Filings Worker"
+    model: "gpt-4o"
+    temperature: 0.1
+    max_tokens: 3072
+    tools:
+      - sec_api
+      - adaptive_rag
+    rag_strategy: "adaptive"
+    cache_enabled: true
+  
+  ratio_calculator_worker:
+    name: "Ratio Calculator Worker"
+    model: "gpt-4o-mini"
+    temperature: 0
+    max_tokens: 1024
+    tools:
+      - financial_ratios
+      - comparative_analysis
+    cache_enabled: false
+  
+  comparative_worker:
+    name: "Comparative Worker"
+    model: "gpt-4o-mini"
+    temperature: 0.1
+    max_tokens: 2048
+    tools:
+      - sector_data
+      - peer_comparison
+    cache_enabled: true
+  
+  graph_relationship_worker:
+    name: "Graph Relationship Worker"
+    model: "gpt-4o"
+    temperature: 0
+    max_tokens: 2048
+    tools:
+      - neo4j_query
+      - cypher_generator
+    graph_strategy: "multi_hop"
+    cache_enabled: true
+  
+  # News Workers
+  news_ingestion_worker:
+    name: "News Ingestion Worker"
+    model: "gpt-4o-mini"
+    temperature: 0
+    max_tokens: 2048
+    tools:
+      - news_api
+      - tavily_search
+    rag_strategy: "corrective"
+    cache_enabled: true
+  
+  sentiment_worker:
+    name: "Sentiment Worker"
+    model: "claude-3-haiku-20240307"
+    temperature: 0
+    max_tokens: 1024
+    tools:
+      - sentiment_model
+    cache_enabled: true
+  
+  event_detection_worker:
+    name: "Event Detection Worker"
+    model: "gpt-4o-mini"
+    temperature: 0.1
+    max_tokens: 2048
+    tools:
+      - event_classifier
+    cache_enabled: true
+  
+  contradiction_detector_worker:
+    name: "Contradiction Detector Worker"
+    model: "gpt-4o"
+    temperature: 0
+    max_tokens: 2048
+    tools:
+      - contradiction_checker
+    cache_enabled: false
+
+# Synthesis & Critic
+synthesizer:
+  name: "Report Synthesizer"
+  model: "gpt-4o"
+  temperature: 0.3
+  max_tokens: 8192
+  
+  output_format: "structured_markdown"
+  include_citations: true
+  confidence_threshold: 0.7
+
+critic:
+  name: "Critic Agent"
+  model: "gpt-4o"
+  temperature: 0
+  max_tokens: 4096
+  
+  evaluation_metrics:
+    - faithfulness
+    - answer_relevance
+    - context_precision
+  
+  faithfulness_threshold: 0.8
+  max_iterations: 5
+  
+  ragas_config:
+    enabled: true
+    batch_size: 10
