@@ -46,7 +46,7 @@ from src.agents.supervisors.news_supervisor import NewsSupervisor
 
 ## Agents (dominio Fundamental)
 
-`src/agents/fundamental_agents.py` — 4 `create_react_agent` de LangGraph, cada uno con su propio LLM y tools de LangChain (`@tool`), siguiendo el patrón de `8-multiagent.py`. No extienden `BaseAgent`; no pasan por el mismo mecanismo de AI Gateway que los workers de arriba.
+`src/agents/fundamental_agents.py` — 4 `create_react_agent` de LangGraph, cada uno con su propio LLM y tools de LangChain (`@tool`), siguiendo el patrón de `notebooks/8-multiagent.ipynb`. No extienden `BaseAgent`; no pasan por el mismo mecanismo de AI Gateway que los workers de arriba.
 
 ```python
 from src.agents.fundamental_agents import (

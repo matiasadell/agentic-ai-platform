@@ -41,7 +41,7 @@ Editá `.env` con tus keys reales.
 
 ⚠️ **Nunca commitees `.env`** (ya está en `.gitignore`). Para producción, usá Databricks Secrets en vez de `.env` — ver [SECURITY_SETUP.md](./SECURITY_SETUP.md).
 
-> ⚠️ Nota de seguridad: al momento de este documento, `.env.example` en el repo contiene una API key real de Financial Modeling Prep hardcodeada (no un placeholder), y `8-multiagent.py` tiene una key de Tavily hardcodeada. Ambas deberían rotarse — ver [PROJECT_STATUS.md](./PROJECT_STATUS.md#5-secretos-hardcodeados-en-el-repo-seguridad-no-solo-documentación).
+> ⚠️ Nota de seguridad: al momento de este documento, `.env.example` en el repo contiene una API key real de Financial Modeling Prep hardcodeada (no un placeholder), y `notebooks/8-multiagent.ipynb` tiene una key de Tavily hardcodeada. Ambas deberían rotarse — ver [PROJECT_STATUS.md](./PROJECT_STATUS.md#5-secretos-hardcodeados-en-el-repo-seguridad-no-solo-documentación).
 
 ## Paso 4: Instalar dependencias
 
@@ -58,10 +58,10 @@ pip install -e ".[dev]"
 Las tools que usan los agentes viven como funciones de Unity Catalog, no como servidores custom. Corré el SQL de:
 
 ```
-notebooks/setup_uc_functions.sql
+notebooks/setup_uc_functions.ipynb
 ```
 
-en tu workspace de Databricks (crea `get_gdp_data`, `get_inflation_data`, `get_unemployment_data`, `get_interest_rate`, `get_financial_news`).
+en tu workspace de Databricks (crea las 9 Unity Catalog functions: `get_gdp_data`, `get_inflation_data`, `get_unemployment_data`, `get_interest_rate`, `get_financial_news`, `get_regional_news`, `get_stock_prices`, `get_technical_indicators`, `detect_corporate_events`).
 
 ## Paso 6: Verificar
 

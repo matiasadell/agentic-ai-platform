@@ -11,7 +11,7 @@
 
 Plataforma de agentes IA para análisis financiero, pensada para correr **nativamente en Databricks**:
 - **Databricks AI Gateway** para el routing de LLM (`src/agents/base_agent.py`)
-- **Unity Catalog Functions** como tools nativos (`src/agents/tools/uc_functions.py`, `notebooks/setup_uc_functions.sql`)
+- **Unity Catalog Functions** como tools nativos (`src/agents/tools/uc_functions.py`, `notebooks/setup_uc_functions.ipynb`)
 - **MLflow** (nativo de Databricks) para tracing
 - **LangGraph** para orquestación de agentes/supervisors
 
@@ -49,9 +49,9 @@ No hay API REST, no hay contenedores, no hay tests automatizados en el repo hoy.
 
 ### Config y notebooks
 - `config/agent_configs.yaml` — configuración de orchestrator/supervisors (modelo, temperatura, timeouts).
-- `notebooks/setup_uc_functions.sql` — `CREATE FUNCTION` de las 5 Unity Catalog functions (`get_gdp_data`, `get_inflation_data`, `get_unemployment_data`, `get_interest_rate`, `get_financial_news`).
-- `notebooks/example_agent_usage.py` — ejemplo de uso.
-- `8-multiagent.py` — notebook standalone (patrón LangGraph de referencia con 3 agentes RAG); es la fuente del patrón que después se aplicó a `fundamental_agents.py`.
+- `notebooks/setup_uc_functions.ipynb` — `CREATE FUNCTION` de las **9** Unity Catalog functions: `get_gdp_data`, `get_inflation_data`, `get_unemployment_data`, `get_interest_rate`, `get_financial_news`, `get_regional_news`, `get_stock_prices`, `get_technical_indicators`, `detect_corporate_events`. (La documentación anterior, y el propio comentario de cabecera del archivo, decían "5 funciones" — desactualizado, quedó así al agregar las últimas 4 sin actualizar el comentario.)
+- `notebooks/example_agent_usage.ipynb` — ejemplo de uso.
+- `notebooks/8-multiagent.ipynb` — notebook standalone (patrón LangGraph de referencia con 3 agentes RAG); es la fuente del patrón que después se aplicó a `fundamental_agents.py`. Movido de la raíz del repo a `notebooks/` el 2026-08-11, y convertido de formato "Databricks notebook source" (`.py`) a `.ipynb` real junto con los otros dos archivos de esta carpeta.
 
 ---
 
@@ -81,7 +81,7 @@ Nombres coinciden en concepto pero no en ubicación ni convención; confunde a c
 Apunta a `src/mcp_servers/financial_data_server.py`, que no existe — consistente con lo que dice `docs/DATABRICKS_NATIVE_ARCHITECTURE.md` (los MCP servers custom fueron descartados a favor de Unity Catalog Functions), pero el archivo de config nunca se borró ni actualizó.
 
 ### 5. Secretos hardcodeados en el repo (seguridad, no solo documentación)
-- `8-multiagent.py` tiene una API key de Tavily en texto plano.
+- `notebooks/8-multiagent.ipynb` tiene una API key de Tavily en texto plano.
 - `.env.example` tiene una API key de Financial Modeling Prep real (no un placeholder) en `FMP_API_KEY=`.
 
 Esto contradice directamente [SECURITY_SETUP.md](./SECURITY_SETUP.md) ("Never hardcode API keys"). Ambas keys deberían rotarse y removerse del código, independientemente de cualquier otro cleanup.
@@ -103,7 +103,7 @@ Esto contradice directamente [SECURITY_SETUP.md](./SECURITY_SETUP.md) ("Never ha
 
 ## 🗂️ Historial (changelog, consolidado desde IMPLEMENTATION_SUMMARY.md — 2026-07-30)
 
-Implementación del patrón "Agents" para el dominio Fundamental, siguiendo el patrón de `8-multiagent.py`:
+Implementación del patrón "Agents" para el dominio Fundamental, siguiendo el patrón de `notebooks/8-multiagent.ipynb`:
 - ✅ `fundamental_agents.py` — 4 tools de LangChain + 4 ReAct agents
 - ✅ `fundamental_supervisor_v2.py` — StateGraph secuencial: `financial_agent → ratios_agent → earnings_agent → valuation_agent`
 - ✅ Documentación del cambio de paradigma Workers → Agents (ahora en el anexo de [ARCHITECTURE.md](./ARCHITECTURE.md))
@@ -111,7 +111,7 @@ Implementación del patrón "Agents" para el dominio Fundamental, siguiendo el p
 
 Cleanup anterior (2026-07-24, referenciado en la versión previa de este doc): remoción de ~40 archivos no usados (`src/api/`, `src/evaluation/`, `src/graph/`, `src/guardrails/`, `src/tools/`, `src/rag/`, `tests/`, `data/`, `scripts/`), reducción de 516K a 248K.
 
-Cleanup 2026-08-11 (esta sesión): eliminado `agentic-ai-platform.zip` + `unzip.py` (archivo comprimido del propio repo, commiteado por error) y `manifest.mf` (metadata de herramienta externa, no contenido real); documentación raíz consolidada en `docs/`.
+Cleanup 2026-08-11 (esta sesión): eliminado `agentic-ai-platform.zip` + `unzip.py` (archivo comprimido del propio repo, commiteado por error) y `manifest.mf` (metadata de herramienta externa, no contenido real); documentación raíz consolidada en `docs/`; `8-multiagent.py` movido de la raíz a `notebooks/` y los tres archivos de `notebooks/` (`8-multiagent`, `example_agent_usage`, `setup_uc_functions`) convertidos de formato "Databricks notebook source" plano (`.py`/`.sql`) a `.ipynb` real.
 
 ---
 
@@ -120,7 +120,7 @@ Cleanup 2026-08-11 (esta sesión): eliminado `agentic-ai-platform.zip` + `unzip.
 1. **Decidir y resolver** cuál supervisor de Fundamental es el canónico (`_v2` funciona; los otros dos deberían borrarse o completarse).
 2. **Arreglar o borrar** `macro_supervisor_langgraph.py` y `news_supervisor_langgraph.py` (crear `src/workers/macro.py` y `src/workers/news.py`, o eliminar los tres archivos `_langgraph` y quedarse con el patrón "workers" que ya funciona).
 3. **Unificar** `src/workers/` dentro de `src/agents/workers/` (o viceversa) para tener una sola jerarquía.
-4. **Rotar y remover** las API keys hardcodeadas en `8-multiagent.py` y `.env.example`.
+4. **Rotar y remover** las API keys hardcodeadas en `notebooks/8-multiagent.ipynb` y `.env.example`.
 5. **Actualizar o borrar** `config/mcp_tools.yaml` (referencia código que ya no existe).
 6. Recién después de eso: Strategic Orchestrator, RAG, evaluación, tests.
 

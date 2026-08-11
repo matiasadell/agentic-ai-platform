@@ -5,7 +5,7 @@
 ## ⚠️ Estado real del repo vs. esta guía
 
 Esta guía describe la práctica recomendada. **El repo hoy no la sigue completamente:**
-- `8-multiagent.py` tiene una API key de Tavily hardcodeada en texto plano.
+- `notebooks/8-multiagent.ipynb` tiene una API key de Tavily hardcodeada en texto plano (en una celda de código).
 - `.env.example` tiene una API key real de Financial Modeling Prep (`FMP_API_KEY=...`), no un placeholder — un `.env.example` no debería tener ningún valor real.
 
 Ambas deberían rotarse y removerse del código. Ver [PROJECT_STATUS.md](./PROJECT_STATUS.md) para el detalle. El resto de este documento describe cómo debería manejarse todo esto en producción.
@@ -97,7 +97,7 @@ w.secrets.put_secret(scope="finsight", key="fred-api-key", string_value="YOUR_AP
 | NewsAPI | newsapi.org | 100 req/día | 100 req/día | MarketSentimentWorker / news workers |
 | Alpha Vantage | alphavantage.co | 25 req/día | 25 req/día (free) | Fundamental agents |
 | Financial Modeling Prep | site.financialmodelingprep.com | 250 req/día | 250 req/día (free) | Fundamental agents (ratios, earnings) |
-| Tavily | tavily.com | 1000 req/mes | — | `8-multiagent.py`, búsqueda web |
+| Tavily | tavily.com | 1000 req/mes | — | `notebooks/8-multiagent.ipynb`, búsqueda web |
 
 ## Troubleshooting
 

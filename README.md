@@ -38,7 +38,7 @@ Diseño completo (target) en **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**. R
   Worker   Context  Analysis                              Worker     Worker         News Workers
 ```
 
-Cada worker/agent usa Unity Catalog Functions (`src/agents/tools/uc_functions.py`, definidas en `notebooks/setup_uc_functions.sql`) como tools, invocadas vía Databricks AI Gateway.
+Cada worker/agent usa Unity Catalog Functions (`src/agents/tools/uc_functions.py`, definidas en `notebooks/setup_uc_functions.ipynb`) como tools, invocadas vía Databricks AI Gateway.
 
 ---
 
@@ -88,9 +88,10 @@ agentic-ai-platform/
 │   ├── workers/fundamental.py    # Variante alternativa del dominio Fundamental (no usada activamente)
 │   ├── schemas/                  # Modelos Pydantic de respuesta por dominio
 │   └── utils/                    # config, logging, cache
-├── notebooks/
-│   ├── setup_uc_functions.sql    # CREATE FUNCTION de las UC Functions
-│   └── example_agent_usage.py
+├── notebooks/                     # Notebooks reales (.ipynb)
+│   ├── setup_uc_functions.ipynb  # CREATE FUNCTION de las 9 UC Functions
+│   ├── example_agent_usage.ipynb
+│   └── 8-multiagent.ipynb        # Notebook de referencia (patrón LangGraph)
 ├── config/
 │   ├── agent_configs.yaml
 │   └── mcp_tools.yaml            # ⚠️ desactualizado, ver PROJECT_STATUS.md
