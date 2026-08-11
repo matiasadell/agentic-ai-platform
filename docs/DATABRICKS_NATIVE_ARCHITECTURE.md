@@ -223,7 +223,7 @@ Estado real verificado el 2026-08-11 (la versión anterior de este checklist no 
 - [x] Implementar primer worker — `MacroDataWorker` y varios más, ver [WORKER_VERSIONS_GUIDE.md](./WORKER_VERSIONS_GUIDE.md)
 - [ ] **`config/mcp_tools.yaml` sigue sin eliminarse** — todavía referencia `src/mcp_servers/financial_data_server.py`, que no existe. Pendiente real.
 - [ ] `config/llm_routing.yaml` — no existe en el repo (probablemente nunca se llegó a crear)
-- [ ] Actualizar `pyproject.toml` / `.env.example` para reflejar 100% Databricks-native — no verificado
+- [x] `pyproject.toml` fue eliminado el 2026-08-11 (el repo nunca fue un paquete instalable; ver `requirements.txt`) / `.env.example` sigue pendiente de limpieza (tiene una key real hardcodeada, ver PROJECT_STATUS.md)
 - [ ] Deploy en Model Serving — no implementado
 
 Ver [PROJECT_STATUS.md](./PROJECT_STATUS.md) para el estado completo y actualizado de todo el proyecto, no solo esta migración.

@@ -39,19 +39,29 @@ cp .env.example .env
 
 Editá `.env` con tus keys reales.
 
-⚠️ **Nunca commitees `.env`** (ya está en `.gitignore`). Para producción, usá Databricks Secrets en vez de `.env` — ver [SECURITY_SETUP.md](./SECURITY_SETUP.md).
+⚠️ **Nunca commitees `.env`.** Este repo no tiene `.gitignore` (se eliminó intencionalmente), así que `.env` **no está excluido de git** — prestá atención antes de hacer `git add`. Para producción, usá Databricks Secrets en vez de `.env` — ver [SECURITY_SETUP.md](./SECURITY_SETUP.md).
 
 > ⚠️ Nota de seguridad: al momento de este documento, `.env.example` en el repo contiene una API key real de Financial Modeling Prep hardcodeada (no un placeholder), y `notebooks/8-multiagent.ipynb` tiene una key de Tavily hardcodeada. Ambas deberían rotarse — ver [PROJECT_STATUS.md](./PROJECT_STATUS.md#5-secretos-hardcodeados-en-el-repo-seguridad-no-solo-documentación).
 
 ## Paso 4: Instalar dependencias
 
+Este repo no es un paquete Python instalable (no hay `pyproject.toml`) — las dependencias están en `requirements.txt`:
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
-pip install -e ".[dev]"
+pip install -r requirements.txt
 ```
 
-(No hay `scripts/setup.sh` en el repo — la instalación es directamente con `pip`.)
+No hay `requirements-dev.txt` por ahora (herramientas de testing/linting como pytest, black, ruff — no hace falta instalarlas para correr el código, solo si en algún momento se agrega testing/linting al proyecto).
+
+(No hay `scripts/setup.sh` en el repo — la instalación es directamente con `pip`. `requirements.txt` está armado a partir de un escaneo de los imports reales en `src/` y `notebooks/`, no es una lista aspiracional — ver la cabecera del archivo y [PROJECT_STATUS.md](./PROJECT_STATUS.md) para el detalle de qué se dejó afuera de la vieja `pyproject.toml`.)
+
+`pyspark` no está en `requirements.txt` a propósito aunque el código lo importa (`uc_functions.py`, `macro_data_worker.py`) — los clusters de Databricks ya lo proveen vía el runtime; instalarlo localmente puede generar conflictos de versión con el del cluster.
+
+### `__pycache__/` no se escribe
+
+Este repo no tiene `.gitignore`, así que la única protección contra `__pycache__/` es que directamente no se genera: `src/__init__.py` setea `sys.dont_write_bytecode = True` apenas se importa cualquier cosa de `src.*`, sin depender de una variable de entorno que haya que configurar en cada lugar donde esto corre (local, notebook de Databricks, cluster/job). Única excepción: el propio `src/__init__.py` se cachea una vez, antes de que su código llegue a ejecutarse (limitación del mecanismo, no algo a arreglar). Otros artefactos (`.pytest_cache/`, `venv/`, logs, `.env`) no tienen ninguna protección — no hay `.gitignore` que los excluya, así que hay que tener cuidado al hacer `git add`.
 
 ## Paso 5: Crear las Unity Catalog Functions
 
@@ -81,14 +91,14 @@ from src.agents.supervisors.macro_supervisor import MacroSupervisor
 # o: from src.agents.supervisors.fundamental_supervisor_v2 import get_fundamental_supervisor
 ```
 
-`src/agents/base_agent.py` asume que corre dentro de un notebook/job de Databricks (usa `databricks.sdk.WorkspaceClient` y un `sys.path.insert` apuntando a un workspace path) — correrlo fuera de Databricks va a fallar tal cual está.
+`src/agents/base_agent.py` asume que corre dentro de un notebook/job de Databricks (usa `databricks.sdk.WorkspaceClient` para llamar al AI Gateway) — importa bien en cualquier entorno, pero ejecutar un worker de verdad requiere credenciales de un workspace de Databricks.
 
 ## 🔧 Problemas comunes
 
 **`ModuleNotFoundError`**
 ```bash
 source venv/bin/activate
-pip install -e .
+pip install -r requirements.txt
 ```
 
 **`pydantic.ValidationError` al importar `settings`**

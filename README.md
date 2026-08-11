@@ -67,8 +67,10 @@ cp .env.example .env   # completar con tus API keys — ver docs/SECURITY_SETUP.
 
 python3 -m venv venv
 source venv/bin/activate
-pip install -e ".[dev]"
+pip install -r requirements.txt
 ```
+
+Este repo no es un paquete Python instalable (no hay `pyproject.toml`) — las dependencias se instalan directo con `pip install -r requirements.txt`, y el código se ejecuta como notebooks/jobs de Databricks con el repo en el `sys.path` (vía Databricks Repos), no vía `pip install -e .`.
 
 Requiere un workspace de Databricks con Unity Catalog y un AI Gateway endpoint configurado — `src/agents/base_agent.py` llama directamente a `databricks.sdk.WorkspaceClient`, no corre standalone fuera de Databricks.
 

@@ -1,0 +1,47 @@
+# FinSight AI - Runtime dependencies
+#
+# Generated 2026-08-11 by scanning actual `import` statements in src/ and
+# notebooks/*.ipynb (replaces pyproject.toml, which listed ~40 packages,
+# many unused - FastAPI, LiteLLM, MCP, Neo4j, SQLAlchemy, psycopg2, ragas,
+# sec-api, yfinance, databricks-vectorsearch, and the airflow/monitoring
+# extras were never imported anywhere in the code). See
+# docs/PROJECT_STATUS.md for the full audit.
+#
+# pyspark is intentionally NOT pinned here even though src/agents/tools/
+# uc_functions.py and src/agents/workers/macro_data_worker.py import it -
+# Databricks clusters provide it via the runtime; installing a pinned
+# version locally can conflict with the cluster's own pyspark.
+
+# Agent framework / orchestration
+langgraph>=0.2.0
+langgraph-supervisor
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+langchain-experimental
+langchain-openai>=0.2.0
+langchain-tavily
+tavily-python>=0.5.0
+wikipedia
+
+# LLM providers / Databricks integration
+databricks-sdk>=0.38.0
+databricks-langchain
+
+# Vector search (used by notebooks/8-multiagent.ipynb's FAISS example)
+faiss-cpu>=1.8.0
+
+# Data / config
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+requests
+
+# Cache
+redis>=5.2.0
+
+# Observability
+mlflow>=2.18.0
+loguru>=0.7.2
+
+# Notebook-only (8-multiagent.ipynb)
+python-dotenv>=1.0.0
