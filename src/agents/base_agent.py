@@ -23,9 +23,7 @@ from databricks.sdk.service.serving import ChatMessage, ChatMessageRole
 from langgraph.graph import StateGraph, END
 
 # Local imports
-import sys
-sys.path.insert(0, '/Workspace/Users/matiasadell@hotmail.com')
-from agentic_ai_platform.src.utils.config import Settings
+from src.utils.config import Settings
 
 
 class BaseAgent(ABC):

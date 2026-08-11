@@ -8,7 +8,7 @@ Capabilities:
 - Regulatory analysis by sector
 
 Usage:
-    from src.agents.workers.news.sector_news_worker import SectorNewsWorker
+    from src.agents.workers.sector_news_worker import SectorNewsWorker
     
     worker = SectorNewsWorker()
     result = worker.analyze_sector_news(sector="technology", days=7)

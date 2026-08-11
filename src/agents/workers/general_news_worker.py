@@ -8,7 +8,7 @@ Capabilities:
 - Event timeline creation
 
 Usage:
-    from src.agents.workers.news.general_news_worker import GeneralNewsWorker
+    from src.agents.workers.general_news_worker import GeneralNewsWorker
     
     worker = GeneralNewsWorker()
     result = worker.aggregate_news(query="financial markets", days=7)

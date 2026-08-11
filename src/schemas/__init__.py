@@ -22,6 +22,12 @@ Uso:
 from .base import WorkerResponse, WorkerStatus, SupervisorState, OrchestratorState
 from .macro import MacroResponse, RegionalResponse, TechnicalResponse
 from .news import SentimentResponse, NewsResponse, SectorResponse, EventResponse
+from .fundamental import (
+    FinancialStatementResponse,
+    KeyRatiosResponse,
+    EarningsResponse,
+    ValuationResponse,
+)
 from .validator import WorkerValidator
 
 __all__ = [
@@ -39,6 +45,11 @@ __all__ = [
     "NewsResponse",
     "SectorResponse",
     "EventResponse",
+    # Fundamental
+    "FinancialStatementResponse",
+    "KeyRatiosResponse",
+    "EarningsResponse",
+    "ValuationResponse",
     # Validator
     "WorkerValidator",
 ]

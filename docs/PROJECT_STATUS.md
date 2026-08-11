@@ -1,7 +1,7 @@
 # 📊 Estado del Proyecto — FinSight AI / Agentic AI Platform
 
 **Última actualización:** 2026-08-11 (auditoría contra el código real del repo)
-**Estado:** 🟡 En desarrollo activo — múltiples patrones de agente coexisten, algunos módulos están rotos o duplicados
+**Estado:** 🟡 En desarrollo activo — múltiples patrones de agente coexisten y hay módulos duplicados/huérfanos, pero (desde el 2026-08-11) todos los imports de `src/` son válidos
 
 > Este documento reemplaza la versión anterior (fechada 2026-07-24), que describía una estructura de carpetas (`src/agents/workers/macro/`, `src/agents/workers/news/`, `src/mcp_servers/`) y una infraestructura (FastAPI, Docker, Neo4j, Redis, tests/) que **no existen en el código actual**. Todo lo de abajo está verificado contra el árbol de archivos real.
 
@@ -22,7 +22,7 @@ No hay API REST, no hay contenedores, no hay tests automatizados en el repo hoy.
 ## ✅ Lo que existe y compila (import-safe)
 
 ### Core
-- **`src/agents/base_agent.py`** — Clase base abstracta: llama a Databricks AI Gateway vía `WorkspaceClient.serving_endpoints.query()`, loop de tool-calling, logging a MLflow. Requiere workspace de Databricks para correr (usa `databricks.sdk`, y tiene un `sys.path.insert` hardcodeado a `/Workspace/Users/matiasadell@hotmail.com` — solo funciona en ese workspace específico).
+- **`src/agents/base_agent.py`** — Clase base abstracta: llama a Databricks AI Gateway vía `WorkspaceClient.serving_endpoints.query()`, loop de tool-calling, logging a MLflow. Requiere workspace de Databricks para *correr* (usa `databricks.sdk`) — pero desde el 2026-08-11 al menos *importa* en cualquier entorno (antes tenía un import roto, ver más abajo).
 - **`src/utils/config.py`** — `Settings` (Pydantic) con las variables de entorno reales del proyecto; corresponde 1:1 con `.env.example`.
 - **`src/utils/logging.py`**, **`src/utils/cache.py`** — utilidades de soporte.
 
@@ -55,32 +55,32 @@ No hay API REST, no hay contenedores, no hay tests automatizados en el repo hoy.
 
 ---
 
-## 🔴 Roto o inconsistente (verificado por import estático)
+## ✅ Corregido el 2026-08-11 (import audit + fixes)
 
-### 1. Tres supervisors `_langgraph.py` no importan
-| Archivo | Import que falla |
-|---|---|
-| `src/agents/supervisors/macro_supervisor_langgraph.py` | `from src.workers.macro import (...)` — **`src/workers/macro.py` no existe** |
-| `src/agents/supervisors/news_supervisor_langgraph.py` | `from src.workers.news import (...)` — **`src/workers/news.py` no existe** |
-| `src/agents/supervisors/fundamental_supervisor_langgraph.py` | `from src.workers.fundamental import (...)` — este sí existe, pero nada más en el repo importa este supervisor tampoco |
+Se corrió un chequeo estático de imports contra los 32 archivos `.py` de `src/` (AST, resolviendo cada `from src.X import Y` contra los nombres reales del módulo destino), y se arreglaron todos los hallazgos:
 
-Ninguno de los tres está referenciado desde otro módulo del repo. Son variantes abandonadas a medio migrar — probablemente el intento de portar `macro_supervisor.py` y `news_supervisor.py` al mismo patrón declarativo de `fundamental_supervisor_v2.py`, que se frenó antes de crear `src/workers/macro.py` / `src/workers/news.py`.
+1. **`macro_supervisor_langgraph.py` y `news_supervisor_langgraph.py` estaban rotos** — importaban `src.workers.macro` / `src.workers.news`, que no existen, con nombres de clase (`RegionalDataWorker`, `TechnicalIndicatorWorker`, `EconomicEventWorker`, `NewsAnalysisWorker`, `CorporateEventWorker`) que tampoco correspondían a ninguna clase real del repo. Reescritos para usar las clases reales de `src.agents.workers.*` y sus firmas reales (verificadas contra `macro_supervisor.py` / `news_supervisor.py`, que documentan los parámetros exactos en su routing prompt). El nodo `event_worker` de `macro_supervisor_langgraph.py` se eliminó — no existe ningún worker de "eventos macroeconómicos" (FOMC/Fed) en el repo; `EventDetectionWorker` es del dominio News (eventos corporativos), ya usado ahí. Ambos archivos ahora importan y compilan correctamente (verificado con AST + `py_compile`).
+2. **`fundamental_supervisor_langgraph.py`** — confirmado que sus imports y llamadas a métodos son correctos (no estaba roto, solo huérfano). Sigue sin ser importado por nada más en el repo; ver "Próximos pasos".
+3. **`src/agents/base_agent.py` tenía el import más grave de todos, no detectado en la primera pasada**: hacía `sys.path.insert(0, '/Workspace/Users/matiasadell@hotmail.com')` y `from agentic_ai_platform.src.utils.config import Settings` — un prefijo de paquete (`agentic_ai_platform.`) que no usa ningún otro archivo del repo, más una ruta hardcodeada a un workspace de Databricks específico. Como `BaseAgent` es la clase padre de los 7 workers, esto rompía el import de toda la capa Workers fuera de ese workspace exacto. Corregido a `from src.utils.config import Settings`, igual que el resto del código.
+4. **`src/agents/tools/` y `src/workers/` no tenían `__init__.py`** (a diferencia de todos sus paquetes hermanos). No rompía imports corriendo desde el repo (namespace packages de Python 3), pero `pyproject.toml` usa `[tool.setuptools.packages.find]` (no `find_namespace`), que solo descubre paquetes con `__init__.py` — un `pip install .` real probablemente excluía `uc_functions.py` y `src/workers/fundamental.py` del paquete instalado. Se agregaron ambos `__init__.py`.
+5. **Docstrings con rutas de import inexistentes**: `general_news_worker.py` y `sector_news_worker.py` mostraban `from src.agents.workers.news.general_news_worker import ...` (un subpaquete `workers/news/` que nunca existió). Corregidas a la ruta real y plana.
+6. **`src/schemas/__init__.py` no re-exportaba los schemas de Fundamental** (`FinancialStatementResponse`, `KeyRatiosResponse`, `EarningsResponse`, `ValuationResponse`), a diferencia de Macro y News. Agregados para simetría.
 
-**Nota:** el `README.md` anterior afirmaba *"LangGraph Migration Complete... Total: 12 workers, 3 supervisors, ALL LangGraph!"* — eso es incorrecto; 2 de los 3 supervisors "LangGraph" no funcionan.
+## 🔴 Sigue roto o inconsistente
 
-### 2. Dos jerarquías de "workers" paralelas
-- `src/agents/workers/` (7 archivos, usados por `macro_supervisor.py` y `news_supervisor.py`)
-- `src/workers/` (1 archivo, `fundamental.py`, usado solo por el supervisor `_langgraph` roto de fundamental)
+### 1. Dos jerarquías de "workers" paralelas
+- `src/agents/workers/` (7 archivos, usados por `macro_supervisor.py` y `news_supervisor.py`, y ahora también por los dos `_langgraph.py` recién arreglados)
+- `src/workers/` (1 archivo, `fundamental.py`, usado solo por `fundamental_supervisor_langgraph.py`, que sigue huérfano)
 
 Nombres coinciden en concepto pero no en ubicación ni convención; confunde a cualquiera que busque "el" paquete de workers.
 
-### 3. Tres generaciones de supervisor para el dominio Fundamental
-`fundamental_supervisor_langgraph.py` (roto), `fundamental_supervisor_v2.py` (el que funciona), y el patrón "workers" en `src/workers/fundamental.py` sin supervisor propio. No hay un `__init__.py` que declare cuál es el público — `src/agents/supervisors/__init__.py` está vacío.
+### 2. Tres generaciones de supervisor para el dominio Fundamental
+`fundamental_supervisor_langgraph.py` (funciona pero huérfano — nada lo importa), `fundamental_supervisor_v2.py` (el que se usa), y el patrón "workers" en `src/workers/fundamental.py` sin supervisor propio. No hay un `__init__.py` que declare cuál es el público — `src/agents/supervisors/__init__.py` está vacío.
 
-### 4. `config/mcp_tools.yaml` referencia infraestructura eliminada
+### 3. `config/mcp_tools.yaml` referencia infraestructura eliminada
 Apunta a `src/mcp_servers/financial_data_server.py`, que no existe — consistente con lo que dice `docs/DATABRICKS_NATIVE_ARCHITECTURE.md` (los MCP servers custom fueron descartados a favor de Unity Catalog Functions), pero el archivo de config nunca se borró ni actualizó.
 
-### 5. Secretos hardcodeados en el repo (seguridad, no solo documentación)
+### 4. Secretos hardcodeados en el repo (seguridad, no solo documentación)
 - `notebooks/8-multiagent.ipynb` tiene una API key de Tavily en texto plano.
 - `.env.example` tiene una API key de Financial Modeling Prep real (no un placeholder) en `FMP_API_KEY=`.
 
@@ -90,12 +90,12 @@ Esto contradice directamente [SECURITY_SETUP.md](./SECURITY_SETUP.md) ("Never ha
 
 ## 📊 Cobertura real
 
-| Dominio | Workers/Agents | Supervisor funcional |
-|---|---|---|
-| Macro | 3/3 (`macro_data`, `regional_context`, `indicator_analysis`) | ✅ `macro_supervisor.py` |
-| News | 4/4 (`general_news`, `sector_news`, `market_sentiment`, `event_detection`) | ✅ `news_supervisor.py` |
-| Fundamental | 4/4 agents (`fundamental_agents.py`) + 4 workers redundantes (`src/workers/fundamental.py`) | ✅ `fundamental_supervisor_v2.py` |
-| Orchestrator (Nivel 1, `docs/ARCHITECTURE.md`) | — | ⬜ No implementado |
+| Dominio | Workers/Agents | Supervisor funcional (usado) | Variante LangGraph declarativa |
+|---|---|---|---|
+| Macro | 3/3 (`macro_data`, `regional_context`, `indicator_analysis`) | ✅ `macro_supervisor.py` | ✅ `macro_supervisor_langgraph.py` (import-safe desde 2026-08-11, no usado por nada más todavía) |
+| News | 4/4 (`general_news`, `sector_news`, `market_sentiment`, `event_detection`) | ✅ `news_supervisor.py` | ✅ `news_supervisor_langgraph.py` (ídem) |
+| Fundamental | 4/4 agents (`fundamental_agents.py`) + 4 workers redundantes (`src/workers/fundamental.py`) | ✅ `fundamental_supervisor_v2.py` | ✅ `fundamental_supervisor_langgraph.py` (siempre fue import-safe, ídem) |
+| Orchestrator (Nivel 1, `docs/ARCHITECTURE.md`) | — | ⬜ No implementado | — |
 
 **No implementado:** Strategic Orchestrator (Nivel 1), RAG, knowledge graph (Neo4j), vector search, API endpoints, evaluation pipeline (RAGAS), guardrails, tests automatizados. Estos aparecen mencionados en README/ARCHITECTURE como visión de producto, no como código presente.
 
@@ -111,18 +111,17 @@ Implementación del patrón "Agents" para el dominio Fundamental, siguiendo el p
 
 Cleanup anterior (2026-07-24, referenciado en la versión previa de este doc): remoción de ~40 archivos no usados (`src/api/`, `src/evaluation/`, `src/graph/`, `src/guardrails/`, `src/tools/`, `src/rag/`, `tests/`, `data/`, `scripts/`), reducción de 516K a 248K.
 
-Cleanup 2026-08-11 (esta sesión): eliminado `agentic-ai-platform.zip` + `unzip.py` (archivo comprimido del propio repo, commiteado por error) y `manifest.mf` (metadata de herramienta externa, no contenido real); documentación raíz consolidada en `docs/`; `8-multiagent.py` movido de la raíz a `notebooks/` y los tres archivos de `notebooks/` (`8-multiagent`, `example_agent_usage`, `setup_uc_functions`) convertidos de formato "Databricks notebook source" plano (`.py`/`.sql`) a `.ipynb` real.
+Cleanup 2026-08-11 (esta sesión): eliminado `agentic-ai-platform.zip` + `unzip.py` (archivo comprimido del propio repo, commiteado por error) y `manifest.mf` (metadata de herramienta externa, no contenido real); documentación raíz consolidada en `docs/`; `8-multiagent.py` movido de la raíz a `notebooks/` y los tres archivos de `notebooks/` (`8-multiagent`, `example_agent_usage`, `setup_uc_functions`) convertidos de formato "Databricks notebook source" plano (`.py`/`.sql`) a `.ipynb` real; auditoría estática de imports sobre los 32 archivos de `src/` y fixes aplicados — ver "✅ Corregido el 2026-08-11" arriba (import roto en `base_agent.py`, dos supervisors `_langgraph` reescritos, `__init__.py` faltantes, docstrings y exports de schemas corregidos).
 
 ---
 
 ## 🚀 Próximos pasos sugeridos
 
-1. **Decidir y resolver** cuál supervisor de Fundamental es el canónico (`_v2` funciona; los otros dos deberían borrarse o completarse).
-2. **Arreglar o borrar** `macro_supervisor_langgraph.py` y `news_supervisor_langgraph.py` (crear `src/workers/macro.py` y `src/workers/news.py`, o eliminar los tres archivos `_langgraph` y quedarse con el patrón "workers" que ya funciona).
-3. **Unificar** `src/workers/` dentro de `src/agents/workers/` (o viceversa) para tener una sola jerarquía.
-4. **Rotar y remover** las API keys hardcodeadas en `notebooks/8-multiagent.ipynb` y `.env.example`.
-5. **Actualizar o borrar** `config/mcp_tools.yaml` (referencia código que ya no existe).
-6. Recién después de eso: Strategic Orchestrator, RAG, evaluación, tests.
+1. **Decidir cuál supervisor es el canónico por dominio** ahora que los tres `_langgraph.py` importan correctamente: quedarse con la versión manual (`macro_supervisor.py`, `news_supervisor.py`, `fundamental_supervisor_v2.py`) o migrar a la declarativa (`*_langgraph.py`) y borrar la otra. Tenerlas todas vivas y sin uso es la causa original de la confusión.
+2. **Unificar** `src/workers/` dentro de `src/agents/workers/` (o viceversa) para tener una sola jerarquía.
+3. **Rotar y remover** las API keys hardcodeadas en `notebooks/8-multiagent.ipynb` y `.env.example`.
+4. **Actualizar o borrar** `config/mcp_tools.yaml` (referencia código que ya no existe).
+5. Recién después de eso: Strategic Orchestrator, RAG, evaluación, tests.
 
 ---
 
