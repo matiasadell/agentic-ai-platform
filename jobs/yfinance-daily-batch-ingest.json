@@ -12,8 +12,8 @@
     }
   ],
   "schedule": {
-    "quartz_cron_expression": "0 0 22 * * ?",
-    "timezone_id": "UTC",
+    "quartz_cron_expression": "0 0 21 ? * MON-FRI",
+    "timezone_id": "America/Argentina/Buenos_Aires",
     "pause_status": "UNPAUSED"
   },
   "max_concurrent_runs": 1
