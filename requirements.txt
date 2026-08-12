@@ -3,9 +3,15 @@
 # Generated 2026-08-11 by scanning actual `import` statements in src/ and
 # notebooks/*.ipynb (replaces pyproject.toml, which listed ~40 packages,
 # many unused - FastAPI, LiteLLM, MCP, Neo4j, SQLAlchemy, psycopg2, ragas,
-# sec-api, yfinance, databricks-vectorsearch, and the airflow/monitoring
-# extras were never imported anywhere in the code). See
-# docs/PROJECT_STATUS.md for the full audit.
+# sec-api, databricks-vectorsearch, and the airflow/monitoring extras were
+# never imported anywhere in the code). See docs/PROJECT_STATUS.md for the
+# full audit.
+#
+# yfinance was dropped in that same audit, then added back on 2026-08-11
+# once notebooks/data/data_ingest/worker.ipynb started using it for the
+# batch price-ingestion pipeline (installed there via a notebook-scoped
+# %pip install cell, not read from this file directly on a cluster - kept
+# here too for local/dev parity).
 #
 # pyspark is intentionally NOT pinned here even though src/agents/tools/
 # uc_functions.py and src/agents/workers/macro_data_worker.py import it -
@@ -45,3 +51,6 @@ loguru>=0.7.2
 
 # Notebook-only (8-multiagent.ipynb)
 python-dotenv>=1.0.0
+
+# Notebook-only (data_ingest/worker.ipynb)
+yfinance
