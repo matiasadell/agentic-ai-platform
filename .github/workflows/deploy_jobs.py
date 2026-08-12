@@ -33,6 +33,17 @@ def deploy_job(client: WorkspaceClient, job_path: Path) -> None:
     print(f"created '{job_name}' (job_id={created.job_id}) from {job_path.relative_to(JOBS_DIR)}")
 
 
+SHARED_REPO_PATH = "/Workspace/Shared/agentic-ai-platform"
+
+
+def sync_shared_repo(client: WorkspaceClient, branch: str = "main") -> None:
+    repo = next(client.repos.list(path_prefix=SHARED_REPO_PATH))
+    client.repos.update(repo_id=repo.id, branch=branch)
+    print(f"pulled '{branch}' into {SHARED_REPO_PATH}")
+
+
 client = WorkspaceClient()
 for job_path in sorted(JOBS_DIR.rglob("*.json")):
     deploy_job(client, job_path)
+
+sync_shared_repo(client)
