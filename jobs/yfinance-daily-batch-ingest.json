@@ -9,6 +9,21 @@
       },
       "timeout_seconds": 3600,
       "max_retries": 1
+    },
+    {
+      "task_key": "run_macro_stock_model",
+      "depends_on": [
+        {"task_key": "run_orchestrator"}
+      ],
+      "notebook_task": {
+        "notebook_path": "/Workspace/Repos/<path-to-repo>/agentic-ai-platform/notebooks/utils/job_runner",
+        "base_parameters": {
+          "job_name": "macro-stock-model"
+        },
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 3600,
+      "max_retries": 1
     }
   ],
   "schedule": {

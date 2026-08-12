@@ -1,0 +1,12 @@
+{
+  "triggers": [
+    {"ticker": "AAPL", "start_date": "1900-01-01"},
+    {"ticker": "MSFT", "start_date": "1900-01-01"},
+    {"ticker": "GOOGL", "start_date": "1900-01-01"},
+    {"ticker": "AMZN", "start_date": "1900-01-01"},
+    {"ticker": "TSLA", "start_date": "1900-01-01"},
+    {"ticker": "NVDA", "start_date": "1900-01-01"},
+    {"ticker": "META", "start_date": "1900-01-01"},
+    {"ticker": "GGAL.BA", "start_date": "1900-01-01"}
+  ]
+}
