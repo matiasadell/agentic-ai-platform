@@ -1,10 +1,10 @@
 {
-  "name": "yfinance-daily-batch-ingest",
+  "name": "fred-daily-batch-ingest",
   "tasks": [
     {
-      "task_key": "run_orchestrator",
+      "task_key": "run_ingest",
       "notebook_task": {
-        "notebook_path": "/Workspace/Repos/<path-to-repo>/agentic-ai-platform/notebooks/data/data_ingest/yfinance/orchestrator",
+        "notebook_path": "/Workspace/Repos/<path-to-repo>/agentic-ai-platform/notebooks/data/data_ingest/fred/ingest",
         "source": "WORKSPACE"
       },
       "timeout_seconds": 3600,
