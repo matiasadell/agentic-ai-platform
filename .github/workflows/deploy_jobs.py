@@ -1,10 +1,3 @@
-"""Deploy every job definition under jobs/ (recursive) to Databricks Jobs.
-
-Each file's name (without extension) identifies the job: existing jobs with
-that name are deleted, then a fresh job is created from the file's content.
-Auth comes from DATABRICKS_HOST/DATABRICKS_TOKEN, set as GitHub secrets.
-"""
-
 import json
 from pathlib import Path
 
