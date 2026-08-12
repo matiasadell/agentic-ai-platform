@@ -10,12 +10,26 @@
 ## 🎯 Qué es esto
 
 Plataforma de agentes IA para análisis financiero, pensada para correr **nativamente en Databricks**:
-- **Databricks AI Gateway** para el routing de LLM (`src/agents/base_agent.py`)
 - **Unity Catalog Functions** como tools nativos (`src/agents/tools/uc_functions.py`, `notebooks/setup_uc_functions.ipynb`)
-- **MLflow** (nativo de Databricks) para tracing
 - **LangGraph** para orquestación de agentes/supervisors
+- Databricks AI Gateway y MLflow **existen en el repo** (`src/agents/base_agent.py`) pero — ver sección siguiente — no los usa el pipeline que realmente funciona hoy.
 
 No hay API REST, no hay contenedores, no hay tests automatizados en el repo hoy. Los `docker-compose`, `FastAPI`, `Neo4j`, `Redis`, `pytest tests/` que aparecían en versiones anteriores del README/QUICKSTART eran aspiracionales o de un diseño descartado — ver [DATABRICKS_NATIVE_ARCHITECTURE.md](./DATABRICKS_NATIVE_ARCHITECTURE.md), que documenta explícitamente por qué se abandonó ese enfoque híbrido.
+
+---
+
+## 🤖 Qué LLM se usa realmente (verificado 2026-08-11)
+
+No hay un solo LLM ni un solo mecanismo de acceso — hay dos, ninguno pasa por el AI Gateway que la documentación (`docs/AI_GATEWAY_CONFIG.md`) describe como el punto de entrada central:
+
+| Dominio | LLM real | Cómo se llama |
+|---|---|---|
+| Macro, News (los 7 workers + sus 2 supervisors) | **Llama 3.3 70B Instruct** | `ChatDatabricks(endpoint="databricks-meta-llama-3-3-70b-instruct")` — Databricks Model Serving directo, sin AI Gateway |
+| Fundamental (4 ReAct agents + supervisor) | **OpenAI GPT-4o-mini** | `init_chat_model("openai:gpt-4o-mini")` — OpenAI directo con API key, ni Databricks ni AI Gateway |
+
+`BaseAgent` (`src/agents/base_agent.py`) es la única clase del repo que sí llama al AI Gateway (`ai-gateway:/main.finsight_ai.finsight-chat`) con logging a MLflow — pero **nada la extiende ni la importa** fuera de un ejemplo en la documentación. Existe, importa correctamente (ver el fix de import más abajo), pero está completamente desconectada del código que efectivamente corre. La primera versión de este documento y de `docs/WORKER_VERSIONS_GUIDE.md` decían que los 7 workers "extienden `BaseAgent`" — es incorrecto, corregido en ambos documentos.
+
+Esto significa que hoy no hay governance centralizado de LLM (rate limits, cost tracking, un solo lugar para cambiar de modelo) pese a que el README y `docs/AI_GATEWAY_CONFIG.md` lo describen como ya configurado — es una brecha real entre lo documentado como arquitectura objetivo y lo que el código hace.
 
 ---
 
@@ -61,7 +75,8 @@ Se corrió un chequeo estático de imports contra los 32 archivos `.py` de `src/
 
 1. **`macro_supervisor_langgraph.py` y `news_supervisor_langgraph.py` estaban rotos** — importaban `src.workers.macro` / `src.workers.news`, que no existen, con nombres de clase (`RegionalDataWorker`, `TechnicalIndicatorWorker`, `EconomicEventWorker`, `NewsAnalysisWorker`, `CorporateEventWorker`) que tampoco correspondían a ninguna clase real del repo. Reescritos para usar las clases reales de `src.agents.workers.*` y sus firmas reales (verificadas contra `macro_supervisor.py` / `news_supervisor.py`, que documentan los parámetros exactos en su routing prompt). El nodo `event_worker` de `macro_supervisor_langgraph.py` se eliminó — no existe ningún worker de "eventos macroeconómicos" (FOMC/Fed) en el repo; `EventDetectionWorker` es del dominio News (eventos corporativos), ya usado ahí. Ambos archivos ahora importan y compilan correctamente (verificado con AST + `py_compile`).
 2. **`fundamental_supervisor_langgraph.py`** — confirmado que sus imports y llamadas a métodos son correctos (no estaba roto, solo huérfano). Sigue sin ser importado por nada más en el repo; ver "Próximos pasos".
-3. **`src/agents/base_agent.py` tenía el import más grave de todos, no detectado en la primera pasada**: hacía `sys.path.insert(0, '/Workspace/Users/matiasadell@hotmail.com')` y `from agentic_ai_platform.src.utils.config import Settings` — un prefijo de paquete (`agentic_ai_platform.`) que no usa ningún otro archivo del repo, más una ruta hardcodeada a un workspace de Databricks específico. Como `BaseAgent` es la clase padre de los 7 workers, esto rompía el import de toda la capa Workers fuera de ese workspace exacto. Corregido a `from src.utils.config import Settings`, igual que el resto del código.
+3. **`src/agents/base_agent.py` tenía un import roto**: hacía `sys.path.insert(0, '/Workspace/Users/matiasadell@hotmail.com')` y `from agentic_ai_platform.src.utils.config import Settings` — un prefijo de paquete (`agentic_ai_platform.`) que no usa ningún otro archivo del repo, más una ruta hardcodeada a un workspace de Databricks específico. Corregido a `from src.utils.config import Settings`, igual que el resto del código.
+   **Corrección de la severidad que le había asignado antes:** dije que esto "rompía el import de toda la capa Workers" porque asumí (sin verificar) que los 7 workers extendían `BaseAgent`. **No es así** — ninguno lo extiende, y nada en `src/` importa `BaseAgent` en absoluto (verificado con grep). `BaseAgent` está completamente desconectada del pipeline que funciona; el fix es correcto y vale la pena tenerlo andando para quien lo use a futuro, pero no estaba bloqueando nada activo. Ver la sección "Qué LLM se usa realmente" más abajo para el detalle completo de esta desconexión.
 4. **`src/agents/tools/` y `src/workers/` no tenían `__init__.py`** (a diferencia de todos sus paquetes hermanos). No rompía imports corriendo desde el repo (namespace packages de Python 3), pero `pyproject.toml` usaba `[tool.setuptools.packages.find]` (no `find_namespace`), que solo descubre paquetes con `__init__.py` — un `pip install .` real probablemente excluía `uc_functions.py` y `src/workers/fundamental.py` del paquete instalado. Se agregaron ambos `__init__.py` (siguen siendo correctos aunque `pyproject.toml` ya no exista — ver más abajo).
 5. **Docstrings con rutas de import inexistentes**: `general_news_worker.py` y `sector_news_worker.py` mostraban `from src.agents.workers.news.general_news_worker import ...` (un subpaquete `workers/news/` que nunca existió). Corregidas a la ruta real y plana.
 6. **`src/schemas/__init__.py` no re-exportaba los schemas de Fundamental** (`FinancialStatementResponse`, `KeyRatiosResponse`, `EarningsResponse`, `ValuationResponse`), a diferencia de Macro y News. Agregados para simetría.
@@ -120,10 +135,11 @@ Cleanup 2026-08-11 (esta sesión): eliminado `agentic-ai-platform.zip` + `unzip.
 ## 🚀 Próximos pasos sugeridos
 
 1. **Decidir cuál supervisor es el canónico por dominio** ahora que los tres `_langgraph.py` importan correctamente: quedarse con la versión manual (`macro_supervisor.py`, `news_supervisor.py`, `fundamental_supervisor_v2.py`) o migrar a la declarativa (`*_langgraph.py`) y borrar la otra. Tenerlas todas vivas y sin uso es la causa original de la confusión.
-2. **Unificar** `src/workers/` dentro de `src/agents/workers/` (o viceversa) para tener una sola jerarquía.
-3. **Rotar y remover** las API keys hardcodeadas en `notebooks/8-multiagent.ipynb` y `.env.example`.
-4. **Actualizar o borrar** `config/mcp_tools.yaml` (referencia código que ya no existe).
-5. Recién después de eso: Strategic Orchestrator, RAG, evaluación, tests.
+2. **Decidir el mecanismo de LLM real**: ¿migrar los 7 workers + Fundamental a `BaseAgent`/AI Gateway (governance centralizado, MLflow logging, un solo lugar para cambiar de modelo), o aceptar/documentar formalmente que Llama 3.3 directo (Macro/News) y OpenAI directo (Fundamental) son el diseño real y borrar/actualizar `BaseAgent` y `docs/AI_GATEWAY_CONFIG.md` para que dejen de describir algo que no se usa?
+3. **Unificar** `src/workers/` dentro de `src/agents/workers/` (o viceversa) para tener una sola jerarquía.
+4. **Rotar y remover** las API keys hardcodeadas en `notebooks/8-multiagent.ipynb` y `.env.example`.
+5. **Actualizar o borrar** `config/mcp_tools.yaml` (referencia código que ya no existe).
+6. Recién después de eso: Strategic Orchestrator, RAG, evaluación, tests.
 
 ---
 

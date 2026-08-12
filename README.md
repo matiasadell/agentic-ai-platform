@@ -1,6 +1,6 @@
 # 🧠 FinSight AI — Plataforma de Inteligencia Financiera Autónoma
 
-> Sistema multi-agente jerárquico para análisis financiero automatizado, nativo de Databricks: **Unity Catalog Functions** como tools, **Databricks AI Gateway** para el routing de LLM, **LangGraph** para orquestación, **MLflow** para observabilidad.
+> Sistema multi-agente jerárquico para análisis financiero automatizado, nativo de Databricks: **Unity Catalog Functions** como tools, **LangGraph** para orquestación. (El routing de LLM vía **Databricks AI Gateway** + **MLflow** está implementado en `BaseAgent` pero no lo usa el pipeline activo hoy — ver [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md#-qué-llm-se-usa-realmente-verificado-2026-08-11).)
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.2+-green.svg)](https://langchain-ai.github.io/langgraph/)
@@ -17,7 +17,7 @@ Dado un objetivo de investigación como *"Analizar el riesgo de inversión en el
 
 1. Descomponga la investigación en sub-tareas por dominio (macro, fundamental, news/sentiment)
 2. Ejecute agentes especializados que usan **Unity Catalog Functions** como tools nativos
-3. Coordine todo vía **Databricks AI Gateway** (rate limits, usage tracking, governance)
+3. Coordine todo vía Databricks AI Gateway (rate limits, usage tracking, governance) — **diseño objetivo, no implementado hoy**: el código real llama a Llama 3.3 y a OpenAI directamente, sin gateway centralizado
 4. Sintetice un reporte con citación y niveles de confianza
 
 Hoy, los tres dominios (Macro, News, Fundamental) tienen supervisors funcionales que coordinan sus workers/agents individualmente. La capa de orquestación de nivel superior (Strategic Orchestrator), síntesis de reporte, RAG y knowledge graph todavía no están implementados — ver [PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
@@ -38,16 +38,16 @@ Diseño completo (target) en **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**. R
   Worker   Context  Analysis                              Worker     Worker         News Workers
 ```
 
-Cada worker/agent usa Unity Catalog Functions (`src/agents/tools/uc_functions.py`, definidas en `notebooks/setup_uc_functions.ipynb`) como tools, invocadas vía Databricks AI Gateway.
+Cada worker/agent usa Unity Catalog Functions (`src/agents/tools/uc_functions.py`, definidas en `notebooks/setup_uc_functions.ipynb`) como tools. El LLM que las invoca es **Llama 3.3 70B** (Macro/News, vía `ChatDatabricks` directo) u **OpenAI GPT-4o-mini** (Fundamental) — no el AI Gateway, pese a lo que sugiere el diagrama de `docs/ARCHITECTURE.md`. Detalle completo en [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md#-qué-llm-se-usa-realmente-verificado-2026-08-11).
 
 ---
 
 ## 🔧 Stack Tecnológico
 
 - **LangGraph** — orquestación de agentes/supervisors (StateGraph)
-- **Databricks AI Gateway** — routing de LLM, rate limiting, usage tracking
+- **Meta Llama 3.3 70B** (vía Databricks Model Serving) y **OpenAI GPT-4o-mini** — los dos LLMs realmente en uso, cada uno llamado directo (ver nota arriba); **Databricks AI Gateway** está implementado en `BaseAgent` pero no conectado a ningún worker/agent activo
 - **Unity Catalog Functions** — tools gobernados, expuestos como `@tool` de LangChain
-- **MLflow** (nativo de Databricks) — tracing y métricas
+- **MLflow** (nativo de Databricks) — solo usado por `BaseAgent`, que no está en el pipeline activo
 - **Pydantic** — configuración (`src/utils/config.py`) y schemas de respuesta (`src/schemas/`)
 
 Fuentes de datos externas: World Bank API, FRED, Alpha Vantage, Financial Modeling Prep, NewsAPI, SEC EDGAR, Tavily.

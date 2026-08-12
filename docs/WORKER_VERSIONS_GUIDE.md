@@ -1,19 +1,21 @@
 # 🤖 Guía de Workers y Agents
 
 > Reescrito el 2026-08-11. La versión anterior (`WORKER_VERSIONS_GUIDE.md`, raíz) describía un sistema de "2 versiones por worker" (`macro_data_worker.py` + `macro_data_worker_simple.py`, `market_sentiment.py` + `market_sentiment_simple.py`) que **no existe en el repo** — no hay un solo archivo `*_simple.py` en todo el proyecto, y `market_sentiment.py` (sin `_worker`) tampoco existe, el archivo real es `market_sentiment_worker.py`. Este documento describe la estructura real actual. Ver [PROJECT_STATUS.md](./PROJECT_STATUS.md) para el detalle de qué está roto.
+>
+> **Corrección (2026-08-11, verificada leyendo las 7 clases directamente):** la primera versión de este documento decía que los workers de Macro/News "extienden `BaseAgent`". Eso es incorrecto — ninguno de los 7 lo hace. Son clases standalone que instancian `ChatDatabricks` directamente. `BaseAgent` existe y sí está bien conectado al AI Gateway, pero no lo usa nada del pipeline que realmente funciona.
 
 ## Resumen
 
-Hay **dos patrones distintos** conviviendo en el repo, no dos versiones del mismo worker:
+Hay **dos patrones distintos** conviviendo en el repo, no dos versiones del mismo worker — y ninguno de los dos pasa por `BaseAgent`/AI Gateway:
 
-1. **Workers** (`src/agents/workers/`) — usados por los dominios Macro y News. Extienden `BaseAgent`, pasan por AI Gateway.
-2. **Agents ReAct** (`src/agents/fundamental_agents.py`) — usados por el dominio Fundamental. Usan `create_react_agent` de LangGraph directamente, no extienden `BaseAgent`.
+1. **Workers** (`src/agents/workers/`) — usados por los dominios Macro y News. Clases standalone (no extienden nada), instancian `ChatDatabricks(endpoint="databricks-meta-llama-3-3-70b-instruct")` directamente — **Llama 3.3 70B** vía Databricks Model Serving, sin pasar por el AI Gateway.
+2. **Agents ReAct** (`src/agents/fundamental_agents.py`) — usados por el dominio Fundamental. Usan `create_react_agent` de LangGraph con `init_chat_model("openai:gpt-4o-mini")` — **OpenAI GPT-4o-mini** directo, ni Databricks ni AI Gateway de por medio.
 
 Además existe `src/workers/fundamental.py`, una tercera variante (patrón "worker" pero para Fundamental) que solo es importada por un supervisor roto — ver más abajo.
 
 ## Workers (dominio Macro y News)
 
-Todos en `src/agents/workers/`, todos extienden `BaseAgent` (`src/agents/base_agent.py`):
+Todos en `src/agents/workers/`. **Ninguno extiende `BaseAgent`** pese a lo que decía la versión anterior de este documento — son clases standalone:
 
 | Worker | Archivo | Dominio |
 |---|---|---|
@@ -26,9 +28,9 @@ Todos en `src/agents/workers/`, todos extienden `BaseAgent` (`src/agents/base_ag
 | SectorNewsWorker | `sector_news_worker.py` | News |
 
 Características comunes:
-- Extienden `BaseAgent` → usan AI Gateway (`finsight-chat`) para razonar
-- Tool calling vía `tool_functions` pasados al constructor
-- Logging a MLflow vía `BaseAgent.process()`
+- Instancian `ChatDatabricks(endpoint="databricks-meta-llama-3-3-70b-instruct")` directamente en `__init__` — **no** usan el AI Gateway (`finsight-chat`) que `docs/AI_GATEWAY_CONFIG.md` documenta como el mecanismo central
+- Tool calling manual (no vía `BaseAgent.register_tool`)
+- Sin logging a MLflow (eso solo existe en `BaseAgent.process()`, que no usan)
 
 Ejemplo de uso:
 ```python
@@ -72,8 +74,8 @@ Este archivo implementa el dominio Fundamental como 4 clases "worker" clásicas 
 
 ## Al crear un worker/agent nuevo
 
-- Si es para Macro o News (o sigue ese patrón): extender `BaseAgent`, ponerlo en `src/agents/workers/`, agregarlo al supervisor correspondiente.
-- Si es para Fundamental (o un dominio nuevo que use ReAct agents en vez de workers): seguir el patrón de `fundamental_agents.py`.
+- Si es para Macro o News (o sigue ese patrón): el precedente real es una clase standalone con `ChatDatabricks(endpoint="databricks-meta-llama-3-3-70b-instruct")`, no `BaseAgent`. Antes de copiar ese patrón vale la pena decidir si en realidad se quiere migrar todo a `BaseAgent`/AI Gateway (que sí tiene MLflow logging y gobierna el endpoint centralmente) — seguir agregando workers que bypasean el Gateway hace más costosa esa migración después.
+- Si es para Fundamental (o un dominio nuevo que use ReAct agents en vez de workers): seguir el patrón de `fundamental_agents.py` — pero notar que usa OpenAI directo, no Databricks.
 - No crear variantes `_simple` "para testing" salvo que realmente se vayan a mantener — la guía anterior recomendaba esto y terminó describiendo archivos que nunca se creían o que se borraron sin actualizar la doc.
 
 ---

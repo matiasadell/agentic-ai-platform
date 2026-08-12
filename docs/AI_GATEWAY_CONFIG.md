@@ -16,18 +16,16 @@ ai_gateway_endpoint = "ai-gateway:/main.finsight_ai.finsight-chat"
 
 `src/agents/base_agent.py` parsea este string (`catalog.schema.endpoint_name`) y llama a `WorkspaceClient.serving_endpoints.query(name=endpoint_name, ...)`.
 
-## Workers que usan `finsight-chat`
+## ⚠️ Workers que *deberían* usar `finsight-chat` — pero no lo hacen (verificado 2026-08-11)
 
-Todo worker/agent que necesita razonamiento pasa por este endpoint. Estado real (ver [PROJECT_STATUS.md](./PROJECT_STATUS.md) para el detalle de qué supervisor está activo):
+Este documento (en su versión original) decía que todos estos workers pasan por `finsight-chat`. **Falso, verificado leyendo el código directamente.** Ninguno de los dos patrones reales del repo pasa por el AI Gateway:
 
-- `src/agents/workers/macro_data_worker.py`
-- `src/agents/workers/regional_context_worker.py`
-- `src/agents/workers/indicator_analysis_worker.py`
-- `src/agents/workers/market_sentiment_worker.py`
-- `src/agents/workers/event_detection_worker.py`
-- `src/agents/workers/general_news_worker.py`
-- `src/agents/workers/sector_news_worker.py`
-- `src/agents/fundamental_agents.py` (los 4 ReAct agents del dominio Fundamental)
+- Los 7 workers de Macro/News instancian `ChatDatabricks(endpoint="databricks-meta-llama-3-3-70b-instruct")` directamente — llaman al Model Serving endpoint de **Llama 3.3 70B** por nombre, sin pasar por `finsight-chat`/AI Gateway:
+  - `src/agents/workers/macro_data_worker.py`, `regional_context_worker.py`, `indicator_analysis_worker.py`, `market_sentiment_worker.py`, `event_detection_worker.py`, `general_news_worker.py`, `sector_news_worker.py`
+  - Sus supervisores (`macro_supervisor.py`, `news_supervisor.py`) hacen lo mismo para su propio LLM de routing/síntesis.
+- `src/agents/fundamental_agents.py` (los 4 ReAct agents del dominio Fundamental) usa `init_chat_model("openai:gpt-4o-mini")` — **OpenAI GPT-4o-mini** directo con una API key de OpenAI, ni Databricks ni AI Gateway de por medio.
+
+`BaseAgent` (la única clase del repo que realmente llama a `finsight-chat` vía `ai_gateway_endpoint`) no es extendida por ninguno de los workers/agents de arriba — existe pero está huérfana. Ver [PROJECT_STATUS.md](./PROJECT_STATUS.md) para el resto del inventario de módulos huérfanos/duplicados.
 
 ## `finsight-embeddings`
 
