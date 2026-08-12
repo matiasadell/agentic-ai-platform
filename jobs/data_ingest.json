@@ -1,0 +1,20 @@
+{
+  "name": "yfinance-daily-batch-ingest",
+  "tasks": [
+    {
+      "task_key": "run_orchestrator",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Repos/<path-to-repo>/agentic-ai-platform/notebooks/data/data_ingest/orchestrator",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 3600,
+      "max_retries": 1
+    }
+  ],
+  "schedule": {
+    "quartz_cron_expression": "0 0 22 * * ?",
+    "timezone_id": "UTC",
+    "pause_status": "UNPAUSED"
+  },
+  "max_concurrent_runs": 1
+}
