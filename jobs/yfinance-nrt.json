@@ -1,0 +1,23 @@
+{
+  "name": "yfinance-nrt",
+  "tasks": [
+    {
+      "task_key": "run_orchestrator",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Repos/<path-to-repo>/agentic-ai-platform/notebooks/data/data_ingest/yfinance_nrt/orchestrator",
+        "base_parameters": {
+          "timeout": "10800"
+        },
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 11400,
+      "max_retries": 0
+    }
+  ],
+  "schedule": {
+    "quartz_cron_expression": "0 0 19 ? * FRI",
+    "timezone_id": "America/Argentina/Buenos_Aires",
+    "pause_status": "UNPAUSED"
+  },
+  "max_concurrent_runs": 1
+}
