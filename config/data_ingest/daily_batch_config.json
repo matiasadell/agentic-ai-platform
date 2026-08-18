@@ -1,12 +1,10 @@
-{
-  "triggers": [
-    {"ticker": "AAPL", "start_date": null},
-    {"ticker": "MSFT", "start_date": null},
-    {"ticker": "GOOGL", "start_date": null},
-    {"ticker": "AMZN", "start_date": null},
-    {"ticker": "TSLA", "start_date": null},
-    {"ticker": "NVDA", "start_date": null},
-    {"ticker": "META", "start_date": null},
-    {"ticker": "GGAL.BA", "start_date": null}
-  ]
-}
+[
+  {"func_params": {"ticker": "AAPL", "interval": "1d", "period": "max"}, "sink_table": "main.yfinance.prices", "mode": "merge", "merge_columns": ["date", "ticker"]},
+  {"func_params": {"ticker": "MSFT", "interval": "1d", "period": "max"}, "sink_table": "main.yfinance.prices", "mode": "merge", "merge_columns": ["date", "ticker"]},
+  {"func_params": {"ticker": "GOOGL", "interval": "1d", "period": "max"}, "sink_table": "main.yfinance.prices", "mode": "merge", "merge_columns": ["date", "ticker"]},
+  {"func_params": {"ticker": "AMZN", "interval": "1d", "period": "max"}, "sink_table": "main.yfinance.prices", "mode": "merge", "merge_columns": ["date", "ticker"]},
+  {"func_params": {"ticker": "TSLA", "interval": "1d", "period": "max"}, "sink_table": "main.yfinance.prices", "mode": "merge", "merge_columns": ["date", "ticker"]},
+  {"func_params": {"ticker": "NVDA", "interval": "1d", "period": "max"}, "sink_table": "main.yfinance.prices", "mode": "merge", "merge_columns": ["date", "ticker"]},
+  {"func_params": {"ticker": "META", "interval": "1d", "period": "max"}, "sink_table": "main.yfinance.prices", "mode": "merge", "merge_columns": ["date", "ticker"]},
+  {"func_params": {"ticker": "GGAL.BA", "interval": "1d", "period": "max"}, "sink_table": "main.yfinance.prices", "mode": "merge", "merge_columns": ["date", "ticker"]}
+]

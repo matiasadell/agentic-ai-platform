@@ -1,0 +1,10 @@
+[
+  {"func_params": {"ticker": "AAPL", "interval": "1m"}, "sink_table": "main.yfinance.nrt_statistics", "mode": "merge", "merge_columns": ["ticker"]},
+  {"func_params": {"ticker": "MSFT", "interval": "1m"}, "sink_table": "main.yfinance.nrt_statistics", "mode": "merge", "merge_columns": ["ticker"]},
+  {"func_params": {"ticker": "GOOGL", "interval": "1m"}, "sink_table": "main.yfinance.nrt_statistics", "mode": "merge", "merge_columns": ["ticker"]},
+  {"func_params": {"ticker": "AMZN", "interval": "1m"}, "sink_table": "main.yfinance.nrt_statistics", "mode": "merge", "merge_columns": ["ticker"]},
+  {"func_params": {"ticker": "TSLA", "interval": "1m"}, "sink_table": "main.yfinance.nrt_statistics", "mode": "merge", "merge_columns": ["ticker"]},
+  {"func_params": {"ticker": "NVDA", "interval": "1m"}, "sink_table": "main.yfinance.nrt_statistics", "mode": "merge", "merge_columns": ["ticker"]},
+  {"func_params": {"ticker": "META", "interval": "1m"}, "sink_table": "main.yfinance.nrt_statistics", "mode": "merge", "merge_columns": ["ticker"]},
+  {"func_params": {"ticker": "GGAL.BA", "interval": "1m"}, "sink_table": "main.yfinance.nrt_statistics", "mode": "merge", "merge_columns": ["ticker"]}
+]

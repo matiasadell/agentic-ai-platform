@@ -1,14 +1,11 @@
-{
-  "series": [
-    {"series_id": "GDPC1", "start_date": null},
-    {"series_id": "CPIAUCSL", "start_date": null},
-    {"series_id": "UNRATE", "start_date": null},
-    {"series_id": "FEDFUNDS", "start_date": null},
-    {"series_id": "DFF", "start_date": null},
-    {"series_id": "DGS10", "start_date": null},
-    {"series_id": "DGS2", "start_date": null},
-    {"series_id": "T10Y2Y", "start_date": null},
-    {"series_id": "VIXCLS", "start_date": null},
-    {"series_id": "M2SL", "start_date": null}
-  ]
-}
+[
+  {
+    "func_params": {
+      "series": ["GDPC1", "CPIAUCSL", "UNRATE", "FEDFUNDS", "DFF", "DGS10", "DGS2", "T10Y2Y", "VIXCLS", "M2SL"],
+      "start_date": null
+    },
+    "sink_table": "main.fred.macro_indicators",
+    "mode": "merge",
+    "merge_columns": ["date"]
+  }
+]

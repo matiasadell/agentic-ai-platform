@@ -2,9 +2,13 @@
   "name": "fred-daily-batch-ingest",
   "tasks": [
     {
-      "task_key": "run_ingest",
+      "task_key": "run_orchestrator",
       "notebook_task": {
-        "notebook_path": "/Workspace/Repos/<path-to-repo>/agentic-ai-platform/notebooks/data/data_ingest/fred/ingest",
+        "notebook_path": "/Workspace/Repos/<path-to-repo>/agentic-ai-platform/notebooks/data/data_ingest/orchestrator",
+        "base_parameters": {
+          "extractor_notebook_path": "/Workspace/Repos/<path-to-repo>/agentic-ai-platform/notebooks/data/data_ingest/fred/extract",
+          "config_path": "/Workspace/Repos/<path-to-repo>/agentic-ai-platform/config/data_ingest/fred_config.json"
+        },
         "source": "WORKSPACE"
       },
       "timeout_seconds": 3600,
